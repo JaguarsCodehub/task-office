@@ -6,72 +6,110 @@ import { router } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { supabase } from '@/lib/supabase';
-import { Task } from '@/types';
 
-interface TaskStats {
+interface TaskAssignment {
+  id: string;
+  assigned_at: string;
+  project_id: string;
+  client_id: string;
+  project?: {
+    id: string;
+    name: string;
+  };
+  client?: {
+    id: string;
+    name: string;
+  };
+  task: {
+    id: string;
+    title: string;
+    description: string;
+    priority: string;
+    status: string;
+    due_date: string;
+  };
+  assigned_by_user: {
+    id: string;
+    full_name: string;
+  };
+}
+
+interface DashboardStats {
   total: number;
   completed: number;
   inProgress: number;
   pending: number;
 }
 
-export default function DashboardScreen() {
+export default function UserDashboard() {
   const { user } = useAuth();
-  const [stats, setStats] = useState<TaskStats>({
+  const [assignments, setAssignments] = useState<TaskAssignment[]>([]);
+  const [stats, setStats] = useState<DashboardStats>({
     total: 0,
     completed: 0,
     inProgress: 0,
     pending: 0,
   });
-  const [recentTasks, setRecentTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // fetchDashboardData();
+    fetchAssignedTasks();
   }, []);
 
-  // const fetchDashboardData = async () => {
-  //   try {
-  //     // Fetch task statistics
-  //     const { data: tasksData, error: tasksError } = await supabase
-  //       .from('tasks')
-  //       .select('status')
-  //       .eq('assigned_to', user?.id);
+  const fetchAssignedTasks = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('task_assignments')
+        .select(`
+                    id,
+                    assigned_at,
+                    project_id,
+                    client_id,
+                    task:tasks (
+                        id,
+                        title,
+                        description,
+                        priority,
+                        status
+                    ),
+                    assigned_by_user:users!task_assignments_assigned_by_fkey (
+                        id,
+                        full_name
+                    )
+                `)
+        .eq('assigned_to', user?.id)
+        .order('assigned_at', { ascending: false });
 
-  //     if (tasksError) throw tasksError;
+      if (error) throw error;
 
-  //     const stats = tasksData.reduce(
-  //       (acc, task) => {
-  //         acc.total++;
-  //         if (task.status === 'COMPLETED') acc.completed++;
-  //         else if (task.status === 'IN_PROGRESS') acc.inProgress++;
-  //         else acc.pending++;
-  //         return acc;
-  //       },
-  //       { total: 0, completed: 0, inProgress: 0, pending: 0 }
-  //     );
+      setAssignments(data || []);
 
-  //     setStats(stats);
+      // Calculate stats
+      const taskStats = (data || []).reduce(
+        (acc, assignment) => {
+          acc.total++;
+          switch (assignment.task.status.toLowerCase()) {
+            case 'completed':
+              acc.completed++;
+              break;
+            case 'in_progress':
+              acc.inProgress++;
+              break;
+            default:
+              acc.pending++;
+          }
+          return acc;
+        },
+        { total: 0, completed: 0, inProgress: 0, pending: 0 }
+      );
 
-  //     // Fetch recent tasks
-  //     const { data: recentData, error: recentError } = await supabase
-  //       .from('tasks')
-  //       .select(`
-  //         *,
-  //         project:projects(name)
-  //       `)
-  //       .eq('assigned_to', user?.id)
-  //       .order('created_at', { ascending: false })
-  //       .limit(5);
-
-  //     if (recentError) throw recentError;
-  //     setRecentTasks(recentData);
-  //   } catch (error) {
-  //     console.error('Error fetching dashboard data:', error);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
+      setStats(taskStats);
+    } catch (error) {
+      console.error('Error fetching assigned tasks:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const StatCard = ({ title, value, icon, color }: { title: string; value: number; icon: string; color: string }) => (
     <View style={[styles.statCard, { borderLeftColor: color }]}>
@@ -79,6 +117,37 @@ export default function DashboardScreen() {
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statTitle}>{title}</Text>
     </View>
+  );
+
+  const TaskCard = ({ assignment }: { assignment: TaskAssignment }) => (
+    <TouchableOpacity
+      style={styles.taskCard}
+      onPress={() => router.push(`/tasks/${assignment.task.id}`)}
+    >
+      <View style={styles.taskHeader}>
+        <Text style={styles.taskTitle}>{assignment.task.title}</Text>
+        <View style={[styles.priorityBadge, { backgroundColor: getPriorityColor(assignment.task.priority) }]}>
+          <Text style={styles.priorityText}>{assignment.task.priority}</Text>
+        </View>
+      </View>
+      {assignment.project?.name && (
+        <Text style={styles.projectName}>Project: {assignment.project.name}</Text>
+      )}
+      {assignment.client?.name && (
+        <Text style={styles.clientName}>Client: {assignment.client.name}</Text>
+      )}
+      <Text style={styles.assignedBy}>
+        Assigned by {assignment.assigned_by_user?.full_name || 'Unknown'}
+      </Text>
+      {assignment.task.due_date && (
+        <Text style={styles.dueDate}>
+          Due {new Date(assignment.task.due_date).toLocaleDateString()}
+        </Text>
+      )}
+      <View style={[styles.statusBadge, { backgroundColor: getStatusColor(assignment.task.status) }]}>
+        <Text style={styles.statusText}>{assignment.task.status}</Text>
+      </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -95,60 +164,37 @@ export default function DashboardScreen() {
       </View>
 
       <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent Tasks</Text>
-          <TouchableOpacity onPress={() => router.push('/tasks')}>
-            <Text style={styles.seeAllText}>See All</Text>
-          </TouchableOpacity>
-        </View>
-
-        {recentTasks.map((task) => (
-          <TouchableOpacity
-            key={task.id}
-            style={styles.taskCard}
-          // onPress={() => router.push(`/tasks/${task.id}`)}
-          >
-            <View style={styles.taskHeader}>
-              <Text style={styles.taskTitle}>{task.title}</Text>
-              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(task.status) }]}>
-                <Text style={styles.statusText}>{task.status}</Text>
-              </View>
-            </View>
-            <Text style={styles.projectName}>{task.project.name}</Text>
-            <Text style={styles.dueDate}>Due {new Date(task.due_date).toLocaleDateString()}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <View style={styles.quickActions}>
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-        <View style={styles.actionButtons}>
-          <TouchableOpacity
-            style={styles.actionButton}
-          // onPress={() => router.push('/tasks/new')}
-          >
-            <FontAwesome name="plus" size={20} color={Colors.light.tint} />
-            <Text style={styles.actionButtonText}>New Task</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionButton}
-          // onPress={() => router.push('/projects/new')}
-          >
-            <FontAwesome name="folder" size={20} color={Colors.light.tint} />
-            <Text style={styles.actionButtonText}>New Project</Text>
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.sectionTitle}>Your Assigned Tasks</Text>
+        {assignments.length === 0 ? (
+          <Text style={styles.emptyText}>No tasks assigned yet</Text>
+        ) : (
+          assignments.map((assignment) => (
+            <TaskCard key={assignment.id} assignment={assignment} />
+          ))
+        )}
       </View>
     </ScrollView>
   );
 }
 
+const getPriorityColor = (priority: string) => {
+  switch (priority.toLowerCase()) {
+    case 'high':
+      return '#FF4444';
+    case 'medium':
+      return '#FFA000';
+    case 'low':
+      return '#4CAF50';
+    default:
+      return '#999999';
+  }
+};
+
 const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'COMPLETED':
+  switch (status.toLowerCase()) {
+    case 'completed':
       return '#34C759';
-    case 'IN_PROGRESS':
+    case 'in_progress':
       return '#FF9500';
     default:
       return '#8E8E93';
@@ -204,18 +250,10 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 24,
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-  },
-  seeAllText: {
-    color: Colors.light.tint,
+    marginBottom: 16,
   },
   taskCard: {
     backgroundColor: '#fff',
@@ -238,13 +276,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     flex: 1,
+    marginRight: 8,
   },
-  statusBadge: {
+  priorityBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
   },
-  statusText: {
+  priorityText: {
     color: '#fff',
     fontSize: 12,
     fontWeight: '500',
@@ -254,36 +293,36 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 4,
   },
+  clientName: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 4,
+  },
+  assignedBy: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 4,
+  },
   dueDate: {
     fontSize: 12,
     color: '#999',
+    marginBottom: 8,
   },
-  quickActions: {
-    marginBottom: 24,
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    marginTop: 12,
-  },
-  actionButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: '#fff',
+  statusBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: 12,
-    marginHorizontal: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  actionButtonText: {
-    fontSize: 16,
+  statusText: {
+    color: '#fff',
+    fontSize: 12,
     fontWeight: '500',
-    marginLeft: 8,
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: '#666',
+    marginTop: 24,
+    fontSize: 16,
   },
 });

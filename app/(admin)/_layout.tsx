@@ -1,22 +1,31 @@
 import { Stack } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
-import { Redirect } from 'expo-router';
+import { useEffect } from 'react';
+import { router } from 'expo-router';
 
 export default function AdminLayout() {
     const { user, isAdmin } = useAuth();
 
-    // Redirect if not authenticated or not an admin
-    if (!user || !isAdmin) {
-        return <Redirect href="/(tabs)" />;
-    }
+    // Protect admin routes
+    useEffect(() => {
+        if (!user || !isAdmin) {
+            // Redirect non-admin users to login or home
+            router.replace('/');
+        }
+    }, [user, isAdmin]);
 
     return (
-        <Stack>
+        <Stack
+            screenOptions={{
+                headerShown: false,
+                headerBackVisible: false, // Disable back button
+                gestureEnabled: false, // Disable swipe back gesture
+            }}
+        >
             <Stack.Screen
                 name="index"
                 options={{
-                    title: 'Admin Dashboard',
-                    headerShown: true,
+                    headerShown: false,
                 }}
             />
             <Stack.Screen

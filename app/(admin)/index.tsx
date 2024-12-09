@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Text, View } from '@/components/Themed';
 import { FontAwesome } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/context/AuthContext';
 
 interface DashboardStats {
     totalProjects: number;
@@ -15,6 +16,7 @@ interface DashboardStats {
 }
 
 export default function AdminDashboard() {
+    const { signOut } = useAuth();
     const [stats, setStats] = useState<DashboardStats>({
         totalProjects: 0,
         totalClients: 0,
@@ -49,6 +51,16 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleSignOut = async () => {
+        try {
+            await signOut();
+            router.replace('/');
+        } catch (error) {
+            console.error('Error signing out:', error);
+            Alert.alert('Error', 'Failed to sign out');
+        }
+    };
+
     const AdminCard = ({ title, count, icon, onPress }: { title: string; count: number; icon: string; onPress: () => void }) => (
         <TouchableOpacity style={styles.card} onPress={onPress}>
             <View style={styles.cardHeader}>
@@ -73,7 +85,12 @@ export default function AdminDashboard() {
     return (
         <ScrollView style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.title}>Admin Dashboard</Text>
+                <View style={styles.headerContent}>
+                    <Text style={styles.title}>Admin Dashboard</Text>
+                    <TouchableOpacity onPress={handleSignOut} style={styles.signOutButton}>
+                        <FontAwesome name="sign-out" size={24} color="#000" />
+                    </TouchableOpacity>
+                </View>
                 <Text style={styles.subtitle}>Overview & Quick Actions</Text>
             </View>
 
@@ -222,5 +239,14 @@ const styles = StyleSheet.create({
     },
     disabledText: {
         color: '#999',
+    },
+    headerContent: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    signOutButton: {
+        padding: 8,
     },
 });

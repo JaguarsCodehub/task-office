@@ -32,10 +32,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="tasks"
+        name="new-task"
         options={{
-          title: 'Tasks',
+          title: 'New Task',
           tabBarIcon: ({ color }) => <TabBarIcon name="tasks" color={color} />,
+          headerShown: false,
         }}
       />
       <Tabs.Screen
@@ -57,6 +58,13 @@ export default function TabLayout() {
         options={{
           title: 'Logout',
           tabBarIcon: ({ color }) => <TabBarIcon name="sign-out" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="tasks"
+        options={{
+          title: 'Tasks',
+          tabBarIcon: ({ color }) => <TabBarIcon name="tasks" color={color} />,
         }}
       />
     </Tabs>
