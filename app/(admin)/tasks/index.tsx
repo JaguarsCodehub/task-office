@@ -178,7 +178,7 @@ export default function TasksScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f0f2f5',
+        backgroundColor: '#fff',
         padding: 20,
     },
     content: {

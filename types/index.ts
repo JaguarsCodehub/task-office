@@ -25,6 +25,20 @@ export interface Task {
     completed_at: string;
 }
 
+export interface TaskAssignment {
+    task: any;
+    id: string;
+    task_id: string;
+    assigned_to: string;
+    assigned_by: string;
+    assigned_at: string;
+    status: 'in_progress' | 'pending' | 'completed';
+    project_id: string;
+    client_id: string;
+    start_date: string;
+    due_date: string;
+}
+
 export interface Project {
     id: string;
     name: string;

@@ -18,6 +18,7 @@ export default function ManageUsers() {
             const { data, error } = await supabase
                 .from('users')
                 .select('*')
+                .eq('role', 'USER')
                 .order('updated_at', { ascending: false });
 
             if (error) throw error;
