@@ -42,8 +42,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="projects"
         options={{
-          title: 'Projects',
-          tabBarIcon: ({ color }) => <TabBarIcon name="folder" color={color} />,
+          href: null,
         }}
       />
       <Tabs.Screen
@@ -63,8 +62,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="tasks"
         options={{
-          title: 'Tasks',
-          tabBarIcon: ({ color }) => <TabBarIcon name="tasks" color={color} />,
+          href: null,
         }}
       />
     </Tabs>

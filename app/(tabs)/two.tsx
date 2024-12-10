@@ -55,7 +55,7 @@ export default function ProfileScreen() {
           </View>
           <View style={styles.userInfo}>
             <Text style={styles.name}>{user?.full_name}</Text>
-            <Text style={styles.email}>{user?.email}</Text>
+            <Text style={styles.email}>{user?.username}</Text>
             <View style={styles.roleBadge}>
               <Text style={styles.roleText}>
                 {isAdmin ? 'Admin' : isManager ? 'Manager' : 'User'}
