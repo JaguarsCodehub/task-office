@@ -41,11 +41,8 @@ export default function ProjectsScreen() {
         >
             <View style={styles.projectHeader}>
                 <Text style={styles.projectTitle}>{project.name}</Text>
-                <Text style={styles.projectTitle}>{project.description}</Text>
+                <Text style={styles.projectDescription}>{project.description}</Text>
             </View>
-
-
-
 
         </TouchableOpacity>
     );
@@ -95,84 +92,71 @@ export default function ProjectsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#fff',
+        paddingHorizontal: 20,
     },
     content: {
-        padding: 16,
+        paddingVertical: 20,
     },
     header: {
-        marginBottom: 20,
+        marginBottom: 30,
     },
     title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 8,
+        fontSize: 32,
+        fontWeight: '800',
+        color: '#1a1a1a',
+        marginBottom: 4,
     },
     subtitle: {
         fontSize: 16,
         color: '#666',
+        fontWeight: '500',
     },
     projectCard: {
         backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: '#e0e0e0',
     },
     projectHeader: {
+        marginBottom: 12,
+    },
+    projectTitle: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#1a1a1a',
+    },
+    projectDescription: {
+        fontSize: 16,
+        color: '#666',
+        marginTop: 4,
+    },
+    projectFooter: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 8,
-    },
-    projectTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        flex: 1,
     },
     statusBadge: {
-        paddingHorizontal: 8,
-        paddingVertical: 4,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
         borderRadius: 12,
     },
     statusText: {
         color: '#fff',
-        fontSize: 12,
-        fontWeight: '500',
-    },
-    clientName: {
         fontSize: 14,
-        color: '#666',
-        marginBottom: 4,
-    },
-    dates: {
-        fontSize: 14,
-        color: '#666',
-        marginBottom: 12,
-    },
-    footer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
+        fontWeight: '600',
     },
     priorityBadge: {
-        paddingHorizontal: 8,
-        paddingVertical: 4,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
         borderRadius: 12,
     },
     priorityText: {
         color: '#fff',
-        fontSize: 12,
-        fontWeight: '500',
-    },
-    budget: {
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: '600',
-        color: Colors.light.tint,
     },
     fab: {
         position: 'absolute',
@@ -184,11 +168,11 @@ const styles = StyleSheet.create({
         borderRadius: 28,
         alignItems: 'center',
         justifyContent: 'center',
-        elevation: 4,
+        elevation: 6,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 6,
         zIndex: 1,
     },
 });

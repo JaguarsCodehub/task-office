@@ -35,19 +35,15 @@ export default function ClientsScreen() {
 
 
     const ClientCard = ({ client }: { client: Client }) => (
-        <View style={styles.clientCard}>
-            <TouchableOpacity
-                style={styles.cardContent}
-                onPress={() => router.push(`/(admin)/clients/${client.id}`)}
-            >
-                <View style={styles.clientInfo}>
-                    <Text style={styles.clientName}>{client.name}</Text>
-                    <Text style={styles.companyName}>{client.description}</Text>
-                </View>
-
-
-            </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+            style={styles.clientCard}
+            onPress={() => router.push(`/(admin)/clients/${client.id}`)}
+        >
+            <View style={styles.clientHeader}>
+                <Text style={styles.clientName}>{client.name}</Text>
+                <Text style={styles.clientDescription}>{client.description}</Text>
+            </View>
+        </TouchableOpacity>
     );
 
     return (
@@ -76,73 +72,46 @@ export default function ClientsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#fff',
+        padding: 20,
     },
     content: {
-        padding: 16,
+        paddingVertical: 20,
     },
     header: {
-        marginBottom: 20,
+        marginBottom: 30,
     },
     title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 8,
+        fontSize: 32,
+        fontWeight: '800',
+        color: '#1a1a1a',
+        marginBottom: 4,
     },
     subtitle: {
         fontSize: 16,
         color: '#666',
+        fontWeight: '500',
     },
     clientCard: {
         backgroundColor: '#fff',
-        borderRadius: 12,
-        marginBottom: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: '#e0e0e0',
     },
-    cardContent: {
-        padding: 16,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    clientInfo: {
-        flex: 1,
+    clientHeader: {
+        marginBottom: 12,
     },
     clientName: {
-        fontSize: 18,
-        fontWeight: '600',
-        marginBottom: 4,
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#1a1a1a',
     },
-    companyName: {
+    clientDescription: {
         fontSize: 16,
         color: '#666',
-        marginBottom: 4,
-    },
-    email: {
-        fontSize: 14,
-        color: '#666',
-        marginBottom: 2,
-    },
-    phone: {
-        fontSize: 14,
-        color: '#666',
-    },
-    statusContainer: {
-        justifyContent: 'center',
-        marginLeft: 16,
-    },
-    statusBadge: {
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 12,
-    },
-    statusText: {
-        color: '#fff',
-        fontSize: 12,
-        fontWeight: '500',
+        marginTop: 4,
     },
     fab: {
         position: 'absolute',
@@ -154,11 +123,11 @@ const styles = StyleSheet.create({
         borderRadius: 28,
         alignItems: 'center',
         justifyContent: 'center',
-        elevation: 4,
+        elevation: 6,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 6,
         zIndex: 1,
     },
 });

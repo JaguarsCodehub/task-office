@@ -13,6 +13,7 @@ interface DashboardStats {
     totalTasks: number;
     activeUsers: number;
     totalTaskAssignments: number;
+    totalRequests: number;
 }
 
 export default function AdminDashboard() {
@@ -23,6 +24,7 @@ export default function AdminDashboard() {
         totalTasks: 0,
         activeUsers: 0,
         totalTaskAssignments: 0,
+        totalRequests: 0,
     });
 
     useEffect(() => {
@@ -31,12 +33,13 @@ export default function AdminDashboard() {
 
     const fetchDashboardStats = async () => {
         try {
-            const [projects, clients, tasks, users, taskAssignments] = await Promise.all([
+            const [projects, clients, tasks, users, taskAssignments, requests] = await Promise.all([
                 supabase.from('projects').select('count', { count: 'exact' }),
                 supabase.from('clients').select('count', { count: 'exact' }),
                 supabase.from('tasks').select('count', { count: 'exact' }),
                 supabase.from('users').select('count', { count: 'exact' }),
                 supabase.from('task_assignments').select('count', { count: 'exact' }),
+                supabase.from('user_requests').select('count', { count: 'exact' }),
             ]);
 
             setStats({
@@ -45,6 +48,7 @@ export default function AdminDashboard() {
                 totalTasks: tasks.count || 0,
                 activeUsers: users.count || 0,
                 totalTaskAssignments: taskAssignments.count || 0,
+                totalRequests: requests.count || 0,
             });
         } catch (error) {
             console.error('Error fetching dashboard stats:', error);
@@ -52,22 +56,41 @@ export default function AdminDashboard() {
     };
 
     const handleSignOut = async () => {
-        try {
-            await signOut();
-            router.replace('/');
-        } catch (error) {
-            console.error('Error signing out:', error);
-            Alert.alert('Error', 'Failed to sign out');
-        }
+        Alert.alert(
+            'Sign Out',
+            'Are you sure you want to sign out?',
+            [
+                {
+                    text: 'Cancel',
+                    style: 'cancel'
+                },
+                {
+                    text: 'Sign Out',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await signOut();
+                            router.replace('/(auth)/login');
+                        } catch (error) {
+                            Alert.alert('Error', 'Failed to sign out');
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     const AdminCard = ({ title, count, icon, onPress }: { title: string; count: number; icon: string; onPress: () => void }) => (
         <TouchableOpacity style={styles.card} onPress={onPress}>
-            <View style={styles.cardHeader}>
-                <FontAwesome name={icon as any} size={24} color={Colors.light.tint} />
-                <Text style={styles.cardCount}>{count}</Text>
+            <View style={styles.cardContent}>
+                <View style={styles.iconContainer}>
+                    <FontAwesome name={icon as any} size={28} color={Colors.light.tint} />
+                </View>
+                <View style={styles.cardTextContainer}>
+                    <Text style={styles.cardCount}>{count}</Text>
+                    <Text style={styles.cardTitle}>{title}</Text>
+                </View>
             </View>
-            <Text style={styles.cardTitle}>{title}</Text>
         </TouchableOpacity>
     );
 
@@ -77,8 +100,20 @@ export default function AdminDashboard() {
             onPress={onPress}
             disabled={disabled}
         >
-            <FontAwesome name={icon as any} size={20} color={disabled ? '#999' : Colors.light.tint} />
+            <View style={styles.actionIconContainer}>
+                <FontAwesome name={icon as any} size={24} color={disabled ? '#999' : '#ffffff'} />
+            </View>
             <Text style={[styles.actionText, disabled && styles.disabledText]}>{title}</Text>
+        </TouchableOpacity>
+    );
+
+    const MenuItem = ({ icon, title, onPress, color = Colors.light.tint }: { icon: string, title: string, onPress: () => void, color?: string }) => (
+        <TouchableOpacity style={styles.menuItem} onPress={onPress}>
+            <View style={styles.menuItemContent}>
+                <FontAwesome name={icon as any} size={20} color={color} />
+                <Text style={[styles.menuItemText, { color }]}>{title}</Text>
+            </View>
+            <FontAwesome name="chevron-right" size={16} color="#999" />
         </TouchableOpacity>
     );
 
@@ -86,12 +121,17 @@ export default function AdminDashboard() {
         <ScrollView style={styles.container}>
             <View style={styles.header}>
                 <View style={styles.headerContent}>
-                    <Text style={styles.title}>Admin Dashboard</Text>
+                    <View>
+                        <Text style={styles.title}>Admin Dashboard</Text>
+                        <Text style={styles.subtitle}>Overview & Quick Actions</Text>
+                    </View>
+                    <TouchableOpacity onPress={() => router.push('/(admin)/profile')} style={styles.signOutButton}>
+                        <FontAwesome name="user" size={24} color={Colors.light.tabIconSelected} />
+                    </TouchableOpacity>
                     <TouchableOpacity onPress={handleSignOut} style={styles.signOutButton}>
-                        <FontAwesome name="sign-out" size={24} color="#000" />
+                        <FontAwesome name="sign-out" size={24} color={Colors.light.tint} />
                     </TouchableOpacity>
                 </View>
-                <Text style={styles.subtitle}>Overview & Quick Actions</Text>
             </View>
 
             <View style={styles.statsGrid}>
@@ -125,27 +165,31 @@ export default function AdminDashboard() {
                     icon="user"
                     onPress={() => router.push('/(admin)/assign')}
                 />
+                <AdminCard
+                    title="Requests"
+                    count={stats.totalRequests}
+                    icon="user"
+                    onPress={() => router.push('/(admin)/requests')}
+                />
             </View>
 
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Quick Actions</Text>
-                <View style={styles.actionGrid}>
-                    <QuickAction
+                <View style={styles.menu}>
+                    <MenuItem
                         title="Add Client"
                         icon="user-plus"
                         onPress={() => router.push('/(admin)/clients/new')}
                     />
-                    <QuickAction
+                    <MenuItem
                         title="New Project"
                         icon="plus-circle"
                         onPress={() => router.push('/(admin)/projects/new')}
-                    // disabled={stats.totalClients === 0}
                     />
-                    <QuickAction
+                    <MenuItem
                         title="Create Task"
                         icon="plus-square"
                         onPress={() => router.push('/(admin)/tasks/new')}
-                    // disabled={stats.totalProjects === 0}
                     />
                 </View>
             </View>
@@ -156,60 +200,89 @@ export default function AdminDashboard() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 16,
+        padding: 20,
+        backgroundColor: '#fff',
     },
     header: {
-        marginBottom: 24,
+        marginBottom: 30,
+        backgroundColor: 'transparent',
+    },
+    headerContent: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        // backgroundColor: 'transparent',
     },
     title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 8,
+        fontSize: 22,
+        fontWeight: '800',
+        color: '#1a1a1a',
+        // marginBottom: 4,
     },
     subtitle: {
-        fontSize: 16,
+        fontSize: 14,
         color: '#666',
+        fontWeight: '500',
     },
-    statsGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-    },
-    card: {
-        width: '48%',
+    signOutButton: {
+        padding: 14,
         backgroundColor: '#fff',
-        padding: 20,
-        borderRadius: 12,
-        marginBottom: 16,
-        alignItems: 'center',
+        borderRadius: 6,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 3,
     },
-    cardHeader: {
+    statsGrid: {
         flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 8,
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        marginBottom: 30,
+    },
+    card: {
+        width: '48%',
+        backgroundColor: '#fff',
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: '#e0e0e0',
+        // shadowColor: '#000',
+        // shadowOffset: { width: 0, height: 4 },
+        // shadowOpacity: 0.1,
+        // shadowRadius: 8,
+        // elevation: 5,
+    },
+    cardContent: {
+        padding: 20,
+    },
+    iconContainer: {
+        backgroundColor: '#f0f4ff',
+        padding: 12,
+        borderRadius: 12,
+        alignSelf: 'flex-start',
+        marginBottom: 12,
+    },
+    cardTextContainer: {
+        gap: 4,
     },
     cardCount: {
-        fontSize: 16,
-        fontWeight: '500',
-        marginLeft: 8,
+        fontSize: 28,
+        fontWeight: '700',
+        color: '#1a1a1a',
     },
     cardTitle: {
         fontSize: 16,
+        color: '#666',
         fontWeight: '500',
-        textAlign: 'center',
     },
     section: {
-        marginBottom: 24,
+        marginBottom: 30,
     },
     sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 8,
+        fontSize: 24,
+        fontWeight: '700',
+        color: '#1a1a1a',
+        marginBottom: 16,
     },
     actionGrid: {
         flexDirection: 'row',
@@ -217,36 +290,47 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     actionButton: {
-        width: '30%',
-        backgroundColor: '#fff',
+        width: '31%',
+        backgroundColor: Colors.light.tint,
         padding: 16,
-        borderRadius: 12,
+        borderRadius: 16,
         marginBottom: 16,
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+    },
+    actionIconContainer: {
+        marginBottom: 8,
     },
     actionText: {
-        fontSize: 16,
-        fontWeight: '500',
-        marginTop: 8,
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#fff',
+        textAlign: 'center',
     },
     disabledButton: {
-        backgroundColor: '#f0f0f0',
+        backgroundColor: '#e0e0e0',
     },
     disabledText: {
         color: '#999',
     },
-    headerContent: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 8,
+    menu: {
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        // marginHorizontal: 16,
     },
-    signOutButton: {
-        padding: 8,
+    menuItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f0f0f0',
+    },
+    menuItemContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    menuItemText: {
+        fontSize: 16,
+        marginLeft: 12,
     },
 });

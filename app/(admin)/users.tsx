@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { StyleSheet, TouchableOpacity, ScrollView, Alert, Image } from 'react-native';
 import { Text, View } from '@/components/Themed';
 import { supabase } from '@/lib/supabase';
 import Colors from '@/constants/Colors';
@@ -51,11 +51,13 @@ export default function ManageUsers() {
     const UserCard = ({ user }: { user: User }) => (
         <View style={styles.userCard}>
             <View style={styles.userInfo}>
-                <Text style={styles.userName}>{user.full_name}</Text>
-                <Text style={styles.userEmail}>{user.email}</Text>
-                <View style={styles.roleBadge}>
+                <Image source={{ uri: user.avatar_url }} style={styles.userAvatar} />
+                <Text style={styles.userName}>{user.username}</Text>
+                <Text style={styles.userEmail}>{user.full_name}</Text>
+                <View style={[styles.roleBadge, { backgroundColor: getRoleColor(user.role) }]}>
                     <Text style={styles.roleText}>{user.role}</Text>
                 </View>
+
             </View>
 
             <View style={styles.actions}>
@@ -90,6 +92,15 @@ export default function ManageUsers() {
         </View>
     );
 
+    const getRoleColor = (role: string) => {
+        const colors = {
+            'USER': '#14B8A6',
+            'MANAGER': '#FFB020',
+            'ADMIN': '#D14343'
+        };
+        return colors[role as keyof typeof colors] || Colors.light.tint;
+    };
+
     return (
         <ScrollView style={styles.container}>
             <View style={styles.header}>
@@ -108,6 +119,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 16,
+        backgroundColor: '#fff',
     },
     header: {
         marginBottom: 24,
@@ -123,53 +135,60 @@ const styles = StyleSheet.create({
     },
     userCard: {
         backgroundColor: '#fff',
-        padding: 16,
-        borderRadius: 12,
-        marginBottom: 12,
+        padding: 20,
+        borderRadius: 8,
+        marginBottom: 20,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        shadowRadius: 6,
+        elevation: 5,
     },
     userInfo: {
         marginBottom: 12,
     },
     userName: {
-        fontSize: 18,
-        fontWeight: '600',
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#333',
         marginBottom: 4,
+        marginTop: 8,
     },
     userEmail: {
-        fontSize: 14,
+        fontSize: 16,
         color: '#666',
         marginBottom: 8,
     },
     roleBadge: {
-        backgroundColor: Colors.light.tint,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 12,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 4,
         alignSelf: 'flex-start',
     },
     roleText: {
         color: '#fff',
-        fontSize: 12,
-        fontWeight: '500',
+        fontSize: 14,
+        fontWeight: '600',
     },
     actions: {
         flexDirection: 'row',
         justifyContent: 'flex-end',
     },
     actionButton: {
-        backgroundColor: '#f0f0f0',
+        backgroundColor: '#000',
         paddingHorizontal: 12,
         paddingVertical: 8,
         borderRadius: 8,
     },
     actionButtonText: {
-        color: Colors.light.tint,
+        color: '#fff',
         fontSize: 14,
-        fontWeight: '500',
+        fontWeight: '600',
+    },
+    userAvatar: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        marginTop: 8,
     },
 });

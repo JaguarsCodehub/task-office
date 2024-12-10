@@ -84,9 +84,7 @@ export default function TasksScreen() {
                     <Text style={styles.priorityText}>{task.priority}</Text>
                 </View>
             </View>
-
             <Text style={styles.projectName}>Description: {task.description}</Text>
-
             <View style={styles.footer}>
                 <View style={[styles.statusBadge, { backgroundColor: getStatusColor(task.status) }]}>
                     <Text style={styles.statusText}>{(task.status).toUpperCase()}</Text>
@@ -143,31 +141,27 @@ export default function TasksScreen() {
                     <View style={styles.filterRow}>
                         <View style={styles.filterPicker}>
                             <Picker
-                                selectedValue={selectedProject}
-                                onValueChange={setSelectedProject}
+                                selectedValue={selectedStatus}
+                                onValueChange={setSelectedStatus}
                                 style={styles.picker}
                             >
-                                <Picker.Item label="All Projects" value="" />
-                                {projects.map(project => (
-                                    <Picker.Item
-                                        key={project.id}
-                                        label={project.name}
-                                        value={project.name}
-                                    />
-                                ))}
+                                <Picker.Item label="All Statuses" value="" />
+                                <Picker.Item label="PENDING" value="pending" />
+                                <Picker.Item label="IN_PROGRESS" value="in_progress" />
+                                <Picker.Item label="COMPLETED" value="completed" />
                             </Picker>
                         </View>
 
                         <View style={styles.filterPicker}>
                             <Picker
-                                selectedValue={selectedStatus}
-                                onValueChange={setSelectedStatus}
+                                selectedValue={selectedPriority}
+                                onValueChange={setSelectedPriority}
                                 style={styles.picker}
                             >
-                                <Picker.Item label="All Status" value="" />
-                                <Picker.Item label="In Progress" value="in_progress" />
-                                <Picker.Item label="Pending" value="pending" />
-                                <Picker.Item label="Completed" value="completed" />
+                                <Picker.Item label="All Priorities" value="" />
+                                <Picker.Item label="Low" value="low" />
+                                <Picker.Item label="Medium" value="medium" />
+                                <Picker.Item label="High" value="high" />
                             </Picker>
                         </View>
                     </View>
@@ -184,25 +178,37 @@ export default function TasksScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#f0f2f5',
+        padding: 20,
     },
     content: {
-        padding: 16,
+        paddingVertical: 20,
     },
     header: {
-        marginBottom: 20,
+        marginBottom: 30,
+        alignItems: 'center',
     },
     title: {
-        fontSize: 24,
+        fontSize: 28,
         fontWeight: 'bold',
-        marginBottom: 8,
+        color: '#333',
+        marginBottom: 4,
     },
     subtitle: {
         fontSize: 16,
-        color: '#666',
+        color: '#888',
+        fontWeight: '500',
     },
     filters: {
         marginBottom: 20,
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        padding: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
     },
     searchInput: {
         backgroundColor: '#fff',
@@ -229,9 +235,9 @@ const styles = StyleSheet.create({
     },
     taskCard: {
         backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 16,
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 20,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
@@ -245,19 +251,14 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     taskTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        flex: 1,
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#333',
     },
     projectName: {
-        fontSize: 14,
+        fontSize: 16,
         color: '#666',
         marginBottom: 4,
-    },
-    assignedTo: {
-        fontSize: 14,
-        color: '#666',
-        marginBottom: 12,
     },
     footer: {
         flexDirection: 'row',
@@ -265,25 +266,26 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     priorityBadge: {
-        paddingHorizontal: 8,
-        paddingVertical: 4,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
         borderRadius: 12,
-        marginLeft: 8,
+        backgroundColor: '#e0e0e0',
     },
     priorityText: {
         color: '#fff',
-        fontSize: 12,
-        fontWeight: '500',
+        fontSize: 14,
+        fontWeight: '600',
     },
     statusBadge: {
-        paddingHorizontal: 8,
-        paddingVertical: 4,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
         borderRadius: 12,
+        backgroundColor: '#e0e0e0',
     },
     statusText: {
         color: '#fff',
-        fontSize: 12,
-        fontWeight: '500',
+        fontSize: 14,
+        fontWeight: '600',
     },
     dueDate: {
         fontSize: 14,
