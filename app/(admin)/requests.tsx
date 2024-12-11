@@ -1,4 +1,4 @@
-import { Alert, StyleSheet, Text, View, ActivityIndicator, RefreshControl, ScrollView, Modal, TouchableOpacity } from 'react-native'
+import { Alert, StyleSheet, Text, View, ActivityIndicator, RefreshControl, ScrollView, Modal, TouchableOpacity, TextInput } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
@@ -32,6 +32,8 @@ const Requests = () => {
     const [refreshing, setRefreshing] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
     const [statusModalVisible, setStatusModalVisible] = useState(false);
+    const [narration, setNarration] = useState('');
+    const [selectedStatus, setSelectedStatus] = useState('');
 
     const { user } = useAuth();
 
@@ -65,12 +67,17 @@ const Requests = () => {
 
     const updateRequestStatus = async (requestId: string, newStatus: string) => {
         try {
+            console.log('Updating request:', requestId, 'to status:', newStatus);
+
             const { error } = await supabase
                 .from('user_requests')
-                .update({ status: newStatus })
+                .update({ status: newStatus, narration: narration })
                 .eq('id', requestId);
 
-            if (error) throw error;
+            if (error) {
+                console.error('Error from Supabase:', error);
+                throw error;
+            }
 
             // Update local state
             setRequests(requests.map(request =>
@@ -128,40 +135,78 @@ const Requests = () => {
                     <Text style={styles.modalTitle}>Update Status</Text>
                     <Text style={styles.modalSubtitle}>{selectedRequest?.title}</Text>
 
+                    <TextInput
+                        style={styles.narrationInput}
+                        placeholder="Narration"
+                        value={narration}
+                        onChangeText={setNarration}
+                    />
+
                     <View style={styles.statusOptions}>
                         {STATUS_OPTIONS.map((option) => (
                             <TouchableOpacity
                                 key={option.value}
                                 style={[
                                     styles.statusOption,
-                                    { backgroundColor: getStatusColor(option.value) }
+                                    {
+                                        backgroundColor: selectedStatus === option.value
+                                            ? getStatusColor(option.value)
+                                            : '#e0e0e0'
+                                    }
                                 ]}
-                                onPress={() => updateRequestStatus(selectedRequest?.id!, option.value)}
+                                onPress={() => setSelectedStatus(option.value)}
                             >
-                                <Text style={styles.statusOptionText}>{option.label}</Text>
+                                <Text style={[
+                                    styles.statusOptionText,
+                                    { color: selectedStatus === option.value ? '#fff' : '#333' }
+                                ]}>
+                                    {option.label}
+                                </Text>
                             </TouchableOpacity>
                         ))}
                     </View>
 
-                    <TouchableOpacity
-                        style={styles.cancelButton}
-                        onPress={() => setStatusModalVisible(false)}
-                    >
-                        {/* <FontAwesome name="times" size={14} color="#000" /> */}
-                        <Text style={styles.cancelButtonText}>Cancel</Text>
-                    </TouchableOpacity>
+                    <View style={styles.buttonContainer}>
+                        <TouchableOpacity
+                            style={styles.submitButton}
+                            onPress={() => {
+                                if (selectedRequest) {
+                                    console.log('Selected Status:', selectedStatus);
+                                    console.log('Selected Request:', selectedRequest);
+                                    updateRequestStatus(selectedRequest.id, selectedStatus);
+                                } else {
+                                    console.log('No request selected');
+                                }
+                            }}
+                        >
+                            <Text style={styles.submitButtonText}>Update Status</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={styles.cancelButton}
+                            onPress={() => {
+                                setStatusModalVisible(false);
+                                setSelectedStatus('');
+                                setNarration('');
+                            }}
+                        >
+                            <Text style={styles.cancelButtonText}>Cancel</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </View>
         </Modal>
     );
 
     const renderCard = (request: Request) => (
-        <TouchableOpacity onPress={() => setStatusModalVisible(true)} key={request.id} style={styles.card}>
+        <TouchableOpacity key={request.id} style={styles.card}>
             <View style={styles.cardHeader}>
                 <Text style={styles.title}>{request.title}</Text>
                 <TouchableOpacity
                     onPress={() => {
+                        console.log('Opening modal for request:', request);
                         setSelectedRequest(request);
+                        setSelectedStatus(request.status);
                         setStatusModalVisible(true);
                     }}
                 >
@@ -373,6 +418,30 @@ const styles = StyleSheet.create({
         marginHorizontal: 5,
     },
     cancelButtonText: {
+        fontSize: 14,
+        color: '#fff',
+        fontWeight: '500',
+    },
+    narrationInput: {
+        borderWidth: 1,
+        borderColor: '#e0e0e0',
+        borderRadius: 8,
+        padding: 10,
+        marginBottom: 16,
+    },
+    buttonContainer: {
+        marginTop: 16,
+        gap: 10,
+    },
+    submitButton: {
+        padding: 12,
+        borderRadius: 8,
+        backgroundColor: Colors.light.tint,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    submitButtonText: {
         fontSize: 14,
         color: '#fff',
         fontWeight: '500',

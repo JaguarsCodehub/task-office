@@ -75,6 +75,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             password,
         });
 
+
+
         if (error) throw error;
 
         if (authData.user) {
