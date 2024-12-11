@@ -3,14 +3,14 @@ import { supabase } from '@/lib/supabase';
 import { User, UserRole } from '@/types';
 import { router } from 'expo-router';
 
-interface AuthContextType {
+type AuthContextType = {
     user: User | null;
     isLoading: boolean;
     signIn: (email: string, password: string) => Promise<void>;
     signOut: () => Promise<void>;
     isAdmin: boolean;
     isManager: boolean;
-}
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -61,26 +61,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (error) throw error;
 
             if (data) {
-                console.log('Fetched user data:', data); // Debug log
+                console.log('Fetched user data:', data);
+
+                // Check if user is inactive
+                if (!data.is_active) {
+                    await supabase.auth.signOut();
+                    throw new Error('Your account has been deactivated. Please contact your administrator.');
+                }
+
                 setUser(data);
+                console.log('User role:', data.role);
             }
         } catch (error) {
             console.error('Error fetching user data:', error);
+            throw error;
         }
     };
 
     const signIn = async (email: string, password: string) => {
-        const { data: authData, error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        });
+        try {
+            const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
 
+            if (authError) throw authError;
 
+            // Check if user is active
+            const { data: userData, error: userError } = await supabase
+                .from('users')
+                .select('is_active, role')
+                .eq('id', authData.session?.user.id)
+                .single();
 
-        if (error) throw error;
+            if (userError) throw userError;
 
-        if (authData.user) {
-            await fetchUserData(authData.user.id);
+            if (userData.is_active === false) {
+                await supabase.auth.signOut();
+                throw new Error('Your account has been deactivated. Please contact your administrator.');
+            }
+
+            // Fetch complete user data
+            await fetchUserData(authData.session?.user.id);
+
+            // Handle routing based on role
+            if (userData.role.toUpperCase() === 'ADMIN') {
+                router.replace('/(admin)');
+            } else {
+                router.replace('/(tabs)');
+            }
+        } catch (error) {
+            throw error;
         }
     };
 

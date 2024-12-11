@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { StyleSheet, TouchableOpacity, TextInput } from 'react-native';
-import { Link, router } from 'expo-router';
+import { StyleSheet, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
+import { Link } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 import { Text, View } from '@/components/Themed';
 import Colors from '@/constants/Colors';
-// import { TextInput } from 'react-native-gesture-handler';
 
 export default function LoginScreen() {
     const [email, setEmail] = useState('');
@@ -15,15 +14,18 @@ export default function LoginScreen() {
     const { signIn } = useAuth();
 
     const handleLogin = async () => {
+        if (!email || !password) {
+            setError('Please fill in all fields');
+            return;
+        }
+
         try {
             setIsLoading(true);
             setError('');
-            const userData = await signIn(email, password);
-
-            // Let AuthContext handle the redirect based on user role
-            // The router.replace will happen in AuthContext after user data is loaded
+            await signIn(email, password);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
+        } finally {
             setIsLoading(false);
         }
     };
@@ -43,6 +45,7 @@ export default function LoginScreen() {
                     onChangeText={setEmail}
                     autoCapitalize="none"
                     keyboardType="email-address"
+                    editable={!isLoading}
                 />
 
                 <TextInput
@@ -51,24 +54,31 @@ export default function LoginScreen() {
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry
+                    editable={!isLoading}
                 />
 
-                {error ? <Text style={styles.errorText}>{error}</Text> : null}
+                {error ? (
+                    <View style={styles.errorContainer}>
+                        <Text style={styles.errorText}>{error}</Text>
+                    </View>
+                ) : null}
 
                 <TouchableOpacity
-                    style={styles.button}
+                    style={[styles.button, isLoading && styles.buttonDisabled]}
                     onPress={handleLogin}
                     disabled={isLoading}
                 >
-                    <Text style={styles.buttonText}>
-                        {isLoading ? 'Signing in...' : 'Sign In'}
-                    </Text>
+                    {isLoading ? (
+                        <ActivityIndicator color="#fff" />
+                    ) : (
+                        <Text style={styles.buttonText}>Sign In</Text>
+                    )}
                 </TouchableOpacity>
 
                 <View style={styles.footer}>
                     <Text style={styles.footerText}>Don't have an account? </Text>
                     <Link href="/(auth)/register" asChild>
-                        <TouchableOpacity>
+                        <TouchableOpacity disabled={isLoading}>
                             <Text style={styles.linkText}>Sign Up</Text>
                         </TouchableOpacity>
                     </Link>
@@ -130,9 +140,18 @@ const styles = StyleSheet.create({
         color: Colors.light.tint,
         fontWeight: 'bold',
     },
+    buttonDisabled: {
+        opacity: 0.7,
+    },
+    errorContainer: {
+        backgroundColor: '#ffebee',
+        padding: 10,
+        borderRadius: 8,
+        marginBottom: 16,
+    },
     errorText: {
-        color: 'red',
-        marginBottom: 10,
+        color: '#d32f2f',
         textAlign: 'center',
+        fontSize: 14,
     },
 });

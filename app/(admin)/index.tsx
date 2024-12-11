@@ -191,6 +191,11 @@ export default function AdminDashboard() {
                         icon="plus-square"
                         onPress={() => router.push('/(admin)/tasks/new')}
                     />
+                    <MenuItem
+                        title="Manage Users"
+                        icon="users"
+                        onPress={() => router.push('/(admin)/manage-users')}
+                    />
                 </View>
             </View>
         </ScrollView>

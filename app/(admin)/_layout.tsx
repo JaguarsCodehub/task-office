@@ -42,6 +42,13 @@ export default function AdminLayout() {
                     headerShown: true,
                 }}
             />
+            {/* <Stack.Screen
+                name="users/index"
+                options={{
+                    title: 'Manage Users',
+                    headerShown: true,
+                }}
+            /> */}
         </Stack>
     );
 }
