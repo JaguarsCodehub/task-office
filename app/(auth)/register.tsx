@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import { StyleSheet, TouchableOpacity, TextInput, Text, View } from 'react-native';
 import { Link, router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
-import { Text, View } from '@/components/Themed';
 import Colors from '@/constants/Colors';
 // import { TextInput } from 'react-native-gesture-handler';
 

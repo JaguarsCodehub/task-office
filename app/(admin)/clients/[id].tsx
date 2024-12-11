@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
-import { Text, View } from '@/components/Themed';
+import { StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert, View, Text } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { Client } from '@/types';
 import Colors from '@/constants/Colors';
@@ -13,11 +12,7 @@ export default function ClientDetailsScreen() {
 
     const [client, setClient] = useState<Partial<Client>>({
         name: '',
-        email: '',
-        phone: '',
-        company: '',
-        address: '',
-        status: 'ACTIVE',
+        description: '',
     });
 
     useEffect(() => {
@@ -44,7 +39,7 @@ export default function ClientDetailsScreen() {
 
     const handleSave = async () => {
         try {
-            if (!client.name || !client.email) {
+            if (!client.name) {
                 Alert.alert('Error', 'Please fill in all required fields');
                 return;
             }
@@ -83,54 +78,6 @@ export default function ClientDetailsScreen() {
                     placeholder="Client Name"
                 />
 
-                <Text style={styles.label}>Company</Text>
-                <TextInput
-                    style={styles.input}
-                    value={client.company}
-                    onChangeText={(text) => setClient({ ...client, company: text })}
-                    placeholder="Company Name"
-                />
-
-                <Text style={styles.label}>Email *</Text>
-                <TextInput
-                    style={styles.input}
-                    value={client.email}
-                    onChangeText={(text) => setClient({ ...client, email: text })}
-                    placeholder="Email Address"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                />
-
-                <Text style={styles.label}>Phone</Text>
-                <TextInput
-                    style={styles.input}
-                    value={client.phone}
-                    onChangeText={(text) => setClient({ ...client, phone: text })}
-                    placeholder="Phone Number"
-                    keyboardType="phone-pad"
-                />
-
-                <Text style={styles.label}>Address</Text>
-                <TextInput
-                    style={[styles.input, styles.textArea]}
-                    value={client.address}
-                    onChangeText={(text) => setClient({ ...client, address: text })}
-                    placeholder="Address"
-                    multiline
-                    numberOfLines={3}
-                />
-
-                <Text style={styles.label}>Status</Text>
-                <View style={styles.pickerContainer}>
-                    <Picker
-                        selectedValue={client.status}
-                        onValueChange={(value) => setClient({ ...client, status: value })}
-                        style={styles.picker}
-                    >
-                        <Picker.Item label="Active" value="ACTIVE" />
-                        <Picker.Item label="Inactive" value="INACTIVE" />
-                    </Picker>
-                </View>
 
                 <TouchableOpacity
                     style={styles.saveButton}

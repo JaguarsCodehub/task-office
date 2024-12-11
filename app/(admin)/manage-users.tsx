@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, TouchableOpacity, ScrollView, Alert, Switch } from 'react-native';
-import { Text, View } from '@/components/Themed';
+import { StyleSheet, TouchableOpacity, ScrollView, Alert, Switch, View, Text } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import Colors from '@/constants/Colors';
 import { FontAwesome } from '@expo/vector-icons';

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, ScrollView, Alert, TextInput } from 'react-native';
-import { Text, View } from '@/components/Themed';
+import { StyleSheet, TouchableOpacity, ScrollView, Alert, TextInput, View, Text } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';

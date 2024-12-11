@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
-import { Text, View } from '@/components/Themed';
+import { StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert, View, Text } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { Client } from '@/types';
 import Colors from '@/constants/Colors';
