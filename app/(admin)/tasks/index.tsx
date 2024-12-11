@@ -251,12 +251,12 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     taskTitle: {
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: '700',
         color: '#333',
     },
     projectName: {
-        fontSize: 16,
+        fontSize: 14,
         color: '#666',
         marginBottom: 4,
     },
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     priorityBadge: {
-        paddingHorizontal: 12,
+        paddingHorizontal: 8,
         paddingVertical: 6,
         borderRadius: 12,
         backgroundColor: '#e0e0e0',
@@ -279,12 +279,12 @@ const styles = StyleSheet.create({
     statusBadge: {
         paddingHorizontal: 12,
         paddingVertical: 6,
-        borderRadius: 12,
+        borderRadius: 6,
         backgroundColor: '#e0e0e0',
     },
     statusText: {
         color: '#fff',
-        fontSize: 14,
+        fontSize: 12,
         fontWeight: '600',
     },
     dueDate: {

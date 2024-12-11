@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Text, View } from '@/components/Themed';
 import { FontAwesome } from '@expo/vector-icons';
@@ -6,6 +6,7 @@ import Colors from '@/constants/Colors';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
+import { useFocusEffect } from '@react-navigation/native';
 
 interface DashboardStats {
     totalProjects: number;
@@ -27,9 +28,11 @@ export default function AdminDashboard() {
         totalRequests: 0,
     });
 
-    useEffect(() => {
-        fetchDashboardStats();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            fetchDashboardStats();
+        }, [])
+    );
 
     const fetchDashboardStats = async () => {
         try {
