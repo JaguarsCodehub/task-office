@@ -156,7 +156,7 @@ const Requests = () => {
     );
 
     const renderCard = (request: Request) => (
-        <View key={request.id} style={styles.card}>
+        <TouchableOpacity onPress={() => setStatusModalVisible(true)} key={request.id} style={styles.card}>
             <View style={styles.cardHeader}>
                 <Text style={styles.title}>{request.title}</Text>
                 <TouchableOpacity
@@ -183,7 +183,7 @@ const Requests = () => {
                     <Text style={styles.metaText}>{formatDate(request.created_at)}</Text>
                 </View>
             </View>
-        </View>
+        </TouchableOpacity>
     );
 
     if (isLoading) {

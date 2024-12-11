@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, TouchableOpacity, ScrollView, Modal, TextInput } from 'react-native';
 import { Text, View } from '@/components/Themed';
 import { useAuth } from '@/context/AuthContext';
 import { router, Stack } from 'expo-router';
@@ -12,11 +12,11 @@ interface TaskAssignment {
   assigned_at: string;
   project_id: string;
   client_id: string;
-  project?: {
+  projects: {
     id: string;
     name: string;
   };
-  client?: {
+  clients: {
     id: string;
     name: string;
   };
@@ -27,6 +27,7 @@ interface TaskAssignment {
     priority: string;
     status: string;
     due_date: string;
+    narration?: string;
   };
   assigned_by_user: {
     id: string;
@@ -41,6 +42,17 @@ interface DashboardStats {
   pending: number;
 }
 
+interface TaskStatus {
+  value: string;
+  label: string;
+}
+
+const TASK_STATUSES: TaskStatus[] = [
+  { value: 'pending', label: 'Pending' },
+  { value: 'in_progress', label: 'In Progress' },
+  { value: 'completed', label: 'Completed' },
+];
+
 export default function UserDashboard() {
   const { user } = useAuth();
   const [assignments, setAssignments] = useState<TaskAssignment[]>([]);
@@ -51,6 +63,10 @@ export default function UserDashboard() {
     pending: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedTask, setSelectedTask] = useState<TaskAssignment | null>(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [taskNarration, setTaskNarration] = useState('');
+  const [taskStatus, setTaskStatus] = useState('');
 
   useEffect(() => {
     fetchAssignedTasks();
@@ -65,6 +81,14 @@ export default function UserDashboard() {
                     assigned_at,
                     project_id,
                     client_id,
+                    projects!task_assignments_project_id_fkey (
+                        id,
+                        name
+                    ),
+                    clients!task_assignments_client_id_fkey (
+                      id,
+                      name
+                    ),
                     task:tasks (
                         id,
                         title,
@@ -75,7 +99,8 @@ export default function UserDashboard() {
                     assigned_by_user:users!task_assignments_assigned_by_fkey (
                         id,
                         full_name
-                    )
+                    ),
+                    narration
                 `)
         .eq('assigned_to', user?.id)
         .order('assigned_at', { ascending: false });
@@ -111,6 +136,44 @@ export default function UserDashboard() {
     }
   };
 
+  const handleTaskUpdate = async () => {
+    try {
+      // Start a Supabase transaction by making multiple updates
+      const updates = [];
+
+      // Update narration in task_assignments table
+      updates.push(
+        supabase
+          .from('task_assignments')
+          .update({ narration: taskNarration })
+          .eq('id', selectedTask?.id)
+      );
+
+      // Update status in tasks table
+      updates.push(
+        supabase
+          .from('tasks')
+          .update({ status: taskStatus })
+          .eq('id', selectedTask?.task.id)
+      );
+
+      // Execute all updates
+      const results = await Promise.all(updates);
+
+      // Check for errors in any of the updates
+      const errors = results.filter(result => result.error);
+      if (errors.length > 0) {
+        throw errors[0].error;
+      }
+
+      // Refresh the task list
+      await fetchAssignedTasks();
+      setIsModalVisible(false);
+    } catch (error) {
+      console.error('Error updating task:', error);
+    }
+  };
+
   const StatCard = ({ title, value, icon, color }: { title: string; value: number; icon: string; color: string }) => (
     <View style={[styles.statCard, { borderLeftColor: color }]}>
       <FontAwesome name={icon as any} size={24} color={color} style={styles.statIcon} />
@@ -122,7 +185,12 @@ export default function UserDashboard() {
   const TaskCard = ({ assignment }: { assignment: TaskAssignment }) => (
     <TouchableOpacity
       style={styles.taskCard}
-      onPress={() => router.push(`/tasks/${assignment.task.id}`)}
+      onPress={() => {
+        setSelectedTask(assignment);
+        setTaskStatus(assignment.task.status);
+        setTaskNarration(assignment.task.narration || '');
+        setIsModalVisible(true);
+      }}
     >
       <View style={styles.taskHeader}>
         <Text style={styles.taskTitle}>{assignment.task.title}</Text>
@@ -130,11 +198,11 @@ export default function UserDashboard() {
           <Text style={styles.priorityText}>{assignment.task.priority}</Text>
         </View>
       </View>
-      {assignment.project?.name && (
-        <Text style={styles.projectName}>Project: {assignment.project.name}</Text>
+      {assignment.projects?.name && (
+        <Text style={styles.projectName}>Project: {assignment.projects.name}</Text>
       )}
-      {assignment.client?.name && (
-        <Text style={styles.clientName}>Client: {assignment.client.name}</Text>
+      {assignment.clients?.name && (
+        <Text style={styles.clientName}>Client: {assignment.clients.name}</Text>
       )}
       <Text style={styles.assignedBy}>
         Assigned by {assignment.assigned_by_user?.full_name || 'Unknown'}
@@ -151,30 +219,91 @@ export default function UserDashboard() {
   );
 
   return (
-    <ScrollView style={styles.container}>
-      <Stack.Screen options={{ headerShown: false }} />
-      <View style={styles.header}>
-        <Text style={styles.welcomeText}>Welcome back,</Text>
-        <Text style={styles.nameText}>{user?.full_name}</Text>
-      </View>
+    <>
+      <ScrollView style={styles.container}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <View style={styles.header}>
+          <Text style={styles.welcomeText}>Welcome back,</Text>
+          <Text style={styles.nameText}>{user?.full_name}</Text>
+        </View>
 
-      <View style={styles.statsContainer}>
-        <StatCard title="Total Tasks" value={stats.total} icon="tasks" color="#007AFF" />
-        <StatCard title="In Progress" value={stats.inProgress} icon="spinner" color="#FF9500" />
-        <StatCard title="Completed" value={stats.completed} icon="check-circle" color="#34C759" />
-      </View>
+        <View style={styles.statsContainer}>
+          <StatCard title="Total Tasks" value={stats.total} icon="tasks" color="#007AFF" />
+          <StatCard title="In Progress" value={stats.inProgress} icon="spinner" color="#FF9500" />
+          <StatCard title="Completed" value={stats.completed} icon="check-circle" color="#34C759" />
+        </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Your Assigned Tasks</Text>
-        {assignments.length === 0 ? (
-          <Text style={styles.emptyText}>No tasks assigned yet</Text>
-        ) : (
-          assignments.map((assignment) => (
-            <TaskCard key={assignment.id} assignment={assignment} />
-          ))
-        )}
-      </View>
-    </ScrollView>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Your Assigned Tasks</Text>
+          {assignments.length === 0 ? (
+            <Text style={styles.emptyText}>No tasks assigned yet</Text>
+          ) : (
+            assignments.map((assignment) => (
+              <TaskCard key={assignment.id} assignment={assignment} />
+            ))
+          )}
+        </View>
+      </ScrollView>
+
+      <Modal
+        visible={isModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setIsModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Update Task</Text>
+
+            <Text style={styles.modalLabel}>Status</Text>
+            <View style={styles.statusButtons}>
+              {TASK_STATUSES.map((status) => (
+                <TouchableOpacity
+                  key={status.value}
+                  style={[
+                    styles.statusButton,
+                    taskStatus === status.value && styles.statusButtonActive,
+                  ]}
+                  onPress={() => setTaskStatus(status.value)}
+                >
+                  <Text style={[
+                    styles.statusButtonText,
+                    taskStatus === status.value && styles.statusButtonTextActive,
+                  ]}>
+                    {status.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={styles.modalLabel}>Notes</Text>
+            <TextInput
+              style={styles.narrationInput}
+              multiline
+              numberOfLines={4}
+              value={taskNarration}
+              onChangeText={setTaskNarration}
+              placeholder="Add your notes here..."
+            />
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setIsModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveButton]}
+                onPress={handleTaskUpdate}
+              >
+                <Text style={styles.modalButtonText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 }
 
@@ -326,5 +455,85 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 24,
     fontSize: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  modalLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#666',
+  },
+  statusButtons: {
+    flexDirection: 'row',
+    marginBottom: 20,
+  },
+  statusButton: {
+    flex: 1,
+    padding: 5,
+    marginHorizontal: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    alignItems: 'center',
+    marginRight: 5
+  },
+  statusButtonActive: {
+    backgroundColor: Colors.light.tint,
+    borderColor: Colors.light.tint,
+  },
+  statusButtonText: {
+    color: '#666',
+  },
+  statusButtonTextActive: {
+    color: '#fff',
+  },
+  narrationInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 20,
+    minHeight: 100,
+    textAlignVertical: 'top',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  modalButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginLeft: 10,
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  cancelButton: {
+    backgroundColor: '#666',
+  },
+  saveButton: {
+    backgroundColor: Colors.light.tint,
   },
 });

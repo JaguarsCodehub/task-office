@@ -81,12 +81,6 @@ export default function ProfileScreen() {
         />
 
         <MenuItem
-          icon="bell"
-          title="Notifications"
-          onPress={() => router.push('/(tabs)/profile/notifications')}
-        />
-
-        <MenuItem
           icon="moon-o"
           title="Dark Mode"
           onPress={() => Alert.alert('Coming Soon', 'This feature will be available soon!')}

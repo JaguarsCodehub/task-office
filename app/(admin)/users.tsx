@@ -18,7 +18,6 @@ export default function ManageUsers() {
             const { data, error } = await supabase
                 .from('users')
                 .select('*')
-                .eq('role', 'USER')
                 .order('updated_at', { ascending: false });
 
             if (error) throw error;
@@ -136,14 +135,11 @@ const styles = StyleSheet.create({
     },
     userCard: {
         backgroundColor: '#fff',
-        padding: 20,
+        padding: 14,
         borderRadius: 8,
-        marginBottom: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
-        elevation: 5,
+        marginBottom: 10,
+        borderWidth: 1,
+        borderColor: '#e0e0e0',
     },
     userInfo: {
         marginBottom: 12,

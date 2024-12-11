@@ -32,6 +32,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="assigned-task"
+        options={{
+          title: 'Assigned Tasks',
+          tabBarIcon: ({ color }) => <TabBarIcon name="th-list" color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="new-task"
         options={{
           title: 'New Task',
