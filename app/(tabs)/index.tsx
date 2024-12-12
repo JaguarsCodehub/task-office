@@ -32,6 +32,7 @@ interface TaskAssignment {
     id: string;
     full_name: string;
   };
+  hours_taken?: number;
 }
 
 interface DashboardStats {
@@ -66,6 +67,9 @@ export default function UserDashboard() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [taskNarration, setTaskNarration] = useState('');
   const [taskStatus, setTaskStatus] = useState('');
+
+  const [totalHoursTaken, setTotalHoursTaken] = useState(0);
+  const [hoursInput, setHoursInput] = useState('');
 
   useEffect(() => {
     fetchAssignedTasks();
@@ -144,7 +148,10 @@ export default function UserDashboard() {
       updates.push(
         supabase
           .from('task_assignments')
-          .update({ narration: taskNarration })
+          .update({
+            narration: taskNarration,
+            hours: hoursInput ? parseFloat(hoursInput) : null
+          })
           .eq('id', selectedTask?.id)
       );
 
@@ -188,6 +195,7 @@ export default function UserDashboard() {
         setSelectedTask(assignment);
         setTaskStatus(assignment.task.status);
         setTaskNarration(assignment.task.narration || '');
+        setHoursInput(assignment.hours_taken?.toString() || '');
         setIsModalVisible(true);
       }}
     >
@@ -275,14 +283,13 @@ export default function UserDashboard() {
               ))}
             </View>
 
-            <Text style={styles.modalLabel}>Notes</Text>
+            <Text style={styles.modalLabel}>Hours Taken</Text>
             <TextInput
-              style={styles.narrationInput}
-              multiline
-              numberOfLines={4}
-              value={taskNarration}
-              onChangeText={setTaskNarration}
-              placeholder="Add your notes here..."
+              style={styles.hoursInput}
+              keyboardType="numeric"
+              value={hoursInput}
+              onChangeText={setHoursInput}
+              placeholder="Enter hours taken"
             />
 
             <View style={styles.modalButtons}>
@@ -534,5 +541,13 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     backgroundColor: Colors.light.tint,
+  },
+  hoursInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 20,
+    height: 45,
   },
 });
