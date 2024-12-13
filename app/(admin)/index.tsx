@@ -179,6 +179,11 @@ export default function AdminDashboard() {
                 <Text style={styles.sectionTitle}>Quick Actions</Text>
                 <View style={styles.menu}>
                     <MenuItem
+                        title="Get Report"
+                        icon="file"
+                        onPress={() => router.push('/(admin)/admin-report')}
+                    />
+                    <MenuItem
                         title="Add Client"
                         icon="user-plus"
                         onPress={() => router.push('/(admin)/clients/new')}
