@@ -150,7 +150,8 @@ export default function UserDashboard() {
           .from('task_assignments')
           .update({
             narration: taskNarration,
-            hours: hoursInput ? parseFloat(hoursInput) : null
+            hours: hoursInput ? parseFloat(hoursInput) : null,
+            completed_at: new Date().toISOString()
           })
           .eq('id', selectedTask?.id)
       );

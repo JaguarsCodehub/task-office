@@ -32,6 +32,8 @@ interface TaskReport {
     };
     hours: number;
     assigned_at: string;
+    due_date: string;
+    completed_at: string;
 }
 
 const AdminReport = () => {
@@ -81,31 +83,35 @@ const AdminReport = () => {
         }
     };
 
+
+
     const fetchReportData = async () => {
         try {
             setIsLoading(true);
             let query = supabase
                 .from('task_assignments')
                 .select(`
-          id,
-          task:tasks (
-            title,
-            status
-          ),
-          assigned_to_user:users!task_assignments_assigned_to_fkey (
-            full_name
-          ),
-          projects!task_assignments_project_id_fkey (
-            id,
-            name
-          ),
-          clients!task_assignments_client_id_fkey (
-                      id,
-                      name
+                    id,
+                    task:tasks (
+                        title,
+                        status
                     ),
-          hours,
-          assigned_at
-        `)
+                    assigned_to_user:users!task_assignments_assigned_to_fkey (
+                        full_name
+                    ),
+                    projects!task_assignments_project_id_fkey (
+                        id,
+                        name
+                    ),
+                    clients!task_assignments_client_id_fkey (
+                        id,
+                        name
+                    ),
+                    hours,
+                    assigned_at,
+                    due_date,
+                    completed_at
+                    `)
                 .order('assigned_at', { ascending: false });
 
             if (selectedProject) {
@@ -194,6 +200,15 @@ const AdminReport = () => {
                                 </Text>
                                 <Text style={styles.taskDetail}>
                                     Assigned to: {item.assigned_to_user?.full_name}
+                                </Text>
+                                <Text style={styles.taskDetail}>
+                                    Assigned at: {new Date(item.assigned_at).toLocaleDateString()}
+                                </Text>
+                                <Text style={styles.taskDetail}>
+                                    Due date: {new Date(item.due_date).toLocaleDateString()}
+                                </Text>
+                                <Text style={styles.taskDetail}>
+                                    Completed at: {new Date(item.completed_at).toLocaleDateString()}
                                 </Text>
                                 <Text style={styles.taskDetail}>
                                     Hours: {item.hours || 0}
