@@ -38,18 +38,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return () => subscription.unsubscribe();
     }, []);
 
-    // Add effect to handle routing when user state changes
-    useEffect(() => {
-        if (user) {
-            console.log('User role:', user.role); // Debug log
-            if (user.role.toUpperCase() === 'ADMIN') {
-                router.replace('/(admin)');
-            } else {
-                router.replace('/(tabs)');
-            }
-        }
-    }, [user]);
-
     const fetchUserData = async (userId: string) => {
         try {
             const { data, error } = await supabase
@@ -101,16 +89,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 throw new Error('Your account has been deactivated. Please contact your administrator.');
             }
 
-            // Fetch complete user data
+            // Set user data first
             await fetchUserData(authData.session?.user.id);
 
-            // Handle routing based on role
+            // Handle routing after all data is set
             if (userData.role.toUpperCase() === 'ADMIN') {
                 router.replace('/(admin)');
             } else {
                 router.replace('/(tabs)');
             }
         } catch (error) {
+            console.error('SignIn error:', error);
             throw error;
         }
     };
