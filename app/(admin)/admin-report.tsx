@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, ScrollView, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, ActivityIndicator, TouchableOpacity, Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import Colors from '@/constants/Colors';
-
+import { FontAwesome } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 interface Project {
     id: string;
     name: string;
@@ -46,6 +47,13 @@ const AdminReport = () => {
     const [reportData, setReportData] = useState<TaskReport[]>([]);
     const [totalHours, setTotalHours] = useState(0);
 
+
+    const [startDate, setStartDate] = useState<Date>(new Date(new Date().setDate(new Date().getDate() - 30))); // Default to 30 days ago
+    const [endDate, setEndDate] = useState<Date>(new Date());
+    const [showStartPicker, setShowStartPicker] = useState(false);
+    const [showEndPicker, setShowEndPicker] = useState(false);
+
+
     useEffect(() => {
         fetchProjects();
         fetchUsers();
@@ -53,7 +61,7 @@ const AdminReport = () => {
 
     useEffect(() => {
         fetchReportData();
-    }, [selectedProject, selectedUser]);
+    }, [selectedProject, selectedUser, startDate, endDate]);
 
     const fetchProjects = async () => {
         try {
@@ -112,7 +120,10 @@ const AdminReport = () => {
                     due_date,
                     completed_at
                     `)
+                .gte('assigned_at', startDate.toISOString())
+                .lte('assigned_at', endDate.toISOString())
                 .order('assigned_at', { ascending: false });
+
 
             if (selectedProject) {
                 query = query.eq('project_id', selectedProject);
@@ -137,6 +148,30 @@ const AdminReport = () => {
         }
     };
 
+    const onStartDateChange = (event: any, selectedDate?: Date) => {
+        setShowStartPicker(false);
+        if (selectedDate) {
+            // Set the start date to the beginning of the selected day
+            const newDate = new Date(selectedDate);
+            newDate.setHours(0, 0, 0, 0);
+            setStartDate(newDate);
+            // Trigger data refresh
+            fetchReportData();
+        }
+    };
+
+    const onEndDateChange = (event: any, selectedDate?: Date) => {
+        setShowEndPicker(false);
+        if (selectedDate) {
+            // Set the end date to the end of the selected day
+            const newDate = new Date(selectedDate);
+            newDate.setHours(23, 59, 59, 999);
+            setEndDate(newDate);
+            // Trigger data refresh
+            fetchReportData();
+        }
+    };
+
     return (
         <ScrollView style={styles.container}>
             <View style={styles.header}>
@@ -144,6 +179,33 @@ const AdminReport = () => {
             </View>
 
             <View style={styles.filters}>
+                <View style={styles.dateFilters}>
+                    <View style={styles.datePickerContainer}>
+                        <Text style={styles.label}>Start Date</Text>
+                        <TouchableOpacity
+                            style={styles.dateButton}
+                            onPress={() => setShowStartPicker(true)}
+                        >
+                            <FontAwesome name="calendar" size={16} color="#666" style={styles.dateIcon} />
+                            <Text style={styles.dateText}>
+                                {startDate.toLocaleDateString()}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.datePickerContainer}>
+                        <Text style={styles.label}>End Date</Text>
+                        <TouchableOpacity
+                            style={styles.dateButton}
+                            onPress={() => setShowEndPicker(true)}
+                        >
+                            <FontAwesome name="calendar" size={16} color="#666" style={styles.dateIcon} />
+                            <Text style={styles.dateText}>
+                                {endDate.toLocaleDateString()}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
                 <View style={styles.pickerContainer}>
                     <Text style={styles.label}>Project</Text>
                     <Picker
@@ -172,6 +234,55 @@ const AdminReport = () => {
                     </Picker>
                 </View>
             </View>
+
+            {Platform.OS === 'ios' ? (
+                <>
+                    {showStartPicker && (
+                        <DateTimePicker
+                            value={startDate}
+                            mode="date"
+                            display="inline"
+                            onChange={onStartDateChange}
+                            maximumDate={endDate}
+                        />
+                    )}
+
+                    {showEndPicker && (
+                        <DateTimePicker
+                            value={endDate}
+                            mode="date"
+                            display="inline"
+                            onChange={onEndDateChange}
+                            minimumDate={startDate}
+                            maximumDate={new Date()}
+                        />
+                    )}
+                </>
+            ) : (
+                <>
+                    {showStartPicker && (
+                        <DateTimePicker
+                            value={startDate}
+                            mode="date"
+                            display="default"
+                            onChange={onStartDateChange}
+                            maximumDate={endDate}
+                        />
+                    )}
+
+                    {showEndPicker && (
+                        <DateTimePicker
+                            value={endDate}
+                            mode="date"
+                            display="default"
+                            onChange={onEndDateChange}
+                            minimumDate={startDate}
+                            maximumDate={new Date()}
+                        />
+                    )}
+                </>
+            )}
+
 
             <View style={styles.statsCard}>
                 <View style={styles.statItem}>
@@ -337,6 +448,31 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: '500',
     },
+    dateFilters: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 16,
+    },
+    datePickerContainer: {
+        flex: 1,
+        marginRight: 8,
+    },
+    dateButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F2F2F7',
+        padding: 12,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#E5E5EA',
+    },
+    dateIcon: {
+        marginRight: 8,
+    },
+    dateText: {
+        fontSize: 14,
+        color: '#000',
+    }
 });
 
 export default AdminReport;
