@@ -20,7 +20,9 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "googleServicesFile": "./google-services.json",
+      "package": "com.taskapp"
     },
     "web": {
       "bundler": "metro",
@@ -32,6 +34,12 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "85199974-c70a-4734-9f8f-253c0a483626"
+      }
+    },
+    "owner": "techbrains"
   }
 }

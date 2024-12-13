@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { User, UserRole } from '@/types';
 import { router } from 'expo-router';
+import * as Notifications from 'expo-notifications';
+import { registerForPushNotificationsAsync, savePushToken } from '@/lib/notification';
 
 type AuthContextType = {
     user: User | null;
@@ -37,6 +39,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         return () => subscription.unsubscribe();
     }, []);
+
+    useEffect(() => {
+        if (user) {
+            setupNotifications();
+        }
+    }, [user]);
+
+    const setupNotifications = async () => {
+        const token = await registerForPushNotificationsAsync();
+        if (token && user) {
+            await savePushToken(user.id, token);
+        }
+    };
 
     const fetchUserData = async (userId: string) => {
         try {

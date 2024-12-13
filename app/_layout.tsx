@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 
 import { useColorScheme } from '@/components/useColorScheme';
+import * as Notifications from 'expo-notifications';
 
 export {
   ErrorBoundary,
@@ -17,6 +18,14 @@ export const unstable_settings = {
 };
 
 SplashScreen.preventAutoHideAsync();
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 function RootLayoutNav() {
   const { user } = useAuth();
@@ -51,6 +60,18 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
+
+  useEffect(() => {
+    const subscription = Notifications.addNotificationResponseReceivedListener(response => {
+      // Handle notification tap
+      const data = response.notification.request.content.data;
+      // Navigate or perform actions based on the notification data
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   if (!loaded) {
     return null;

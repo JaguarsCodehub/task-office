@@ -81,10 +81,39 @@ export default function AssignTaskScreen() {
 
             if (error) throw error;
 
+            // Get user's push token
+            const { data: userData, error: userError } = await supabase
+                .from('users')
+                .select('push_token')
+                .eq('id', selectedUserId)
+                .single();
+
+            console.log('User push token:', userData?.push_token);
+
+            if (userData?.push_token) {
+                // Use Expo's push notification service directly
+                const response = await fetch('https://exp.host/--/api/v2/push/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        to: userData.push_token,
+                        title: 'New Task Assigned',
+                        body: `You have been assigned a new task: ${task?.title}`,
+                        data: { taskId: id },
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to send notification');
+                }
+            }
+
             Alert.alert('Success', 'Task assigned successfully');
             router.back();
         } catch (error) {
-            console.error('Error assigning task:', error);
+            console.error('Error:', error);
             Alert.alert('Error', 'Failed to assign task');
         } finally {
             setIsLoading(false);
