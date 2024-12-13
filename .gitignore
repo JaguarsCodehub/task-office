@@ -9,7 +9,6 @@ dist/
 web-build/
 expo-env.d.ts
 task-app-52329-firebase-adminsdk-2kmih-7d58385db1.json
-google-services.json
 
 # Native
 *.orig.*
