@@ -4,12 +4,12 @@
     "slug": "task-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/project-management.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/splash-icon.png",
+      "image": "./assets/images/project-management.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -18,9 +18,12 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/project-management.png",
         "backgroundColor": "#ffffff"
       },
+      "permissions": [
+        "NOTIFICATIONS"
+      ],
       "googleServicesFile": "./google-services.json",
       "package": "com.taskapp"
     },
