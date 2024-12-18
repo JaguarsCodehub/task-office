@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, TouchableOpacity, ScrollView, Modal, TextInput, Text, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, ScrollView, Modal, TextInput, Text, View, RefreshControl } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import { router, Stack } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
@@ -70,6 +70,7 @@ export default function UserDashboard() {
 
   const [totalHoursTaken, setTotalHoursTaken] = useState(0);
   const [hoursInput, setHoursInput] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchAssignedTasks();
@@ -226,9 +227,20 @@ export default function UserDashboard() {
     </TouchableOpacity>
   );
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchAssignedTasks();
+    setRefreshing(false);
+  };
+
   return (
     <>
-      <ScrollView style={styles.container}>
+      <ScrollView
+        style={styles.container}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <Stack.Screen options={{ headerShown: false }} />
         <View style={styles.header}>
           <Text style={styles.welcomeText}>Welcome back,</Text>
