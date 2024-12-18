@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Picker } from '@react-native-picker/picker';
@@ -47,6 +47,7 @@ const AssignedTasks = () => {
     const [filteredTasks, setFilteredTasks] = useState<TaskAssignment[]>([]);
     const [dateFilter, setDateFilter] = useState(DATE_FILTERS.ALL);
     const [isLoading, setIsLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false)
 
     useEffect(() => {
         fetchTasks();
@@ -131,6 +132,12 @@ const AssignedTasks = () => {
         setFilteredTasks(filtered);
     };
 
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await fetchTasks();
+        setRefreshing(false);
+    };
+
     const TaskCard = ({ task }: { task: TaskAssignment }) => (
         <View style={styles.taskCard}>
             <View style={styles.taskHeader}>
@@ -176,7 +183,9 @@ const AssignedTasks = () => {
                 </Picker>
             </View>
 
-            <ScrollView style={styles.taskList}>
+            <ScrollView refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            } style={styles.taskList}>
                 {isLoading ? (
                     <Text style={styles.loadingText}>Loading tasks...</Text>
                 ) : filteredTasks.length === 0 ? (

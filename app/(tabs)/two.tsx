@@ -76,13 +76,7 @@ export default function ProfileScreen() {
         <MenuItem
           icon="user"
           title="Edit Profile"
-          onPress={() => router.push('/(tabs)/profile/edit')}
-        />
-
-        <MenuItem
-          icon="moon-o"
-          title="Dark Mode"
-          onPress={() => Alert.alert('Coming Soon', 'This feature will be available soon!')}
+          onPress={() => router.push('/(tabs)/profile')}
         />
 
         <MenuItem
