@@ -1,12 +1,23 @@
-import React from 'react';
-import { StyleSheet, TouchableOpacity, Alert, View, Text } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, TouchableOpacity, Alert, View, Text, RefreshControl, ScrollView } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import { FontAwesome } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { router } from 'expo-router';
+import { supabase } from '@/lib/supabase';
+
+// Define the User type
+interface User {
+  id: string;
+  full_name: string;
+  username: string;
+  role: string;
+}
 
 export default function ProfileScreen() {
   const { user, signOut, isAdmin, isManager } = useAuth();
+  const [refreshing, setRefreshing] = useState(false)
+  const [users, setUsers] = useState<User[]>([])
 
   const handleSignOut = async () => {
     Alert.alert(
@@ -43,50 +54,79 @@ export default function ProfileScreen() {
     </TouchableOpacity>
   );
 
+  const fetchUserDetails = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, full_name, username, role')
+        .eq('id', user?.id)
+
+      if (error) throw error;
+      setUsers(data as User[] || []);
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      Alert.alert('Error', 'Failed to load user details');
+    }
+  };
+
+  useEffect(() => {
+    fetchUserDetails();
+  }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchUserDetails();
+    setRefreshing(false);
+  }
+
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.profileInfo}>
-          <View style={styles.avatarContainer}>
-            <Text style={styles.avatarText}>
-              {user?.full_name?.charAt(0).toUpperCase()}
-            </Text>
-          </View>
-          <View style={styles.userInfo}>
-            <Text style={styles.name}>{user?.full_name}</Text>
-            <Text style={styles.email}>{user?.username}</Text>
-            <View style={styles.roleBadge}>
-              <Text style={styles.roleText}>
-                {isAdmin ? 'Admin' : isManager ? 'Manager' : 'User'}
+    <ScrollView refreshControl={
+      <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+    }>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View style={styles.profileInfo}>
+            <View style={styles.avatarContainer}>
+              <Text style={styles.avatarText}>
+                {users[0]?.full_name?.charAt(0).toUpperCase()}
               </Text>
+            </View>
+            <View style={styles.userInfo}>
+              <Text style={styles.name}>{users[0]?.full_name}</Text>
+              <Text style={styles.email}>{users[0]?.username}</Text>
+              <View style={styles.roleBadge}>
+                <Text style={styles.roleText}>
+                  {isAdmin ? 'Admin' : isManager ? 'Manager' : 'User'}
+                </Text>
+              </View>
             </View>
           </View>
         </View>
-      </View>
 
-      <View style={styles.menu}>
-        {isAdmin && (
+        <View style={styles.menu}>
+          {isAdmin && (
+            <MenuItem
+              icon="cog"
+              title="Admin Dashboard"
+              onPress={() => router.push('/(admin)/index')}
+            />
+          )}
+
           <MenuItem
-            icon="cog"
-            title="Admin Dashboard"
-            onPress={() => router.push('/(admin)/index')}
+            icon="user"
+            title="Edit Profile"
+            onPress={() => router.push('/(tabs)/profile')}
           />
-        )}
 
-        <MenuItem
-          icon="user"
-          title="Edit Profile"
-          onPress={() => router.push('/(tabs)/profile')}
-        />
-
-        <MenuItem
-          icon="sign-out"
-          title="Sign Out"
-          onPress={handleSignOut}
-          color="#FF3B30"
-        />
+          <MenuItem
+            icon="sign-out"
+            title="Sign Out"
+            onPress={handleSignOut}
+            color="#FF3B30"
+          />
+        </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 

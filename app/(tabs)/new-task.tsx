@@ -30,6 +30,7 @@ export default function CreateTaskRequestScreen() {
             const { data, error } = await supabase
                 .from('users')
                 .select('id, full_name')
+                .not('id', 'eq', user?.id)
                 .order('full_name');
 
             if (error) throw error;
