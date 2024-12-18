@@ -41,11 +41,19 @@ const DATE_FILTERS = {
     UPCOMING: 'upcoming',
 };
 
+const STATUS_FILTERS = {
+    ALL: 'all',
+    COMPLETED: 'completed',
+    IN_PROGRESS: 'in_progress',
+    PENDING: 'pending',
+};
+
 const AssignedTasks = () => {
     const { user } = useAuth();
     const [tasks, setTasks] = useState<TaskAssignment[]>([]);
     const [filteredTasks, setFilteredTasks] = useState<TaskAssignment[]>([]);
     const [dateFilter, setDateFilter] = useState(DATE_FILTERS.ALL);
+    const [statusFilter, setStatusFilter] = useState(STATUS_FILTERS.ALL);
     const [isLoading, setIsLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false)
 
@@ -55,7 +63,7 @@ const AssignedTasks = () => {
 
     useEffect(() => {
         filterTasks();
-    }, [dateFilter, tasks]);
+    }, [dateFilter, tasks, statusFilter]);
 
     const fetchTasks = async () => {
         try {
@@ -113,20 +121,23 @@ const AssignedTasks = () => {
 
             const dueDate = parseISO(task.due_date);
 
-            switch (dateFilter) {
-                case DATE_FILTERS.TODAY:
-                    return format(dueDate, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
+            const dateMatch = (() => {
+                switch (dateFilter) {
+                    case DATE_FILTERS.TODAY:
+                        return format(dueDate, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
+                    case DATE_FILTERS.LAST_5_DAYS:
+                        const fiveDaysAgo = subDays(today, 5);
+                        return isBefore(dueDate, today) && isAfter(dueDate, fiveDaysAgo);
+                    case DATE_FILTERS.UPCOMING:
+                        return isAfter(dueDate, today);
+                    default:
+                        return true;
+                }
+            })();
 
-                case DATE_FILTERS.LAST_5_DAYS:
-                    const fiveDaysAgo = subDays(today, 5);
-                    return isBefore(dueDate, today) && isAfter(dueDate, fiveDaysAgo);
+            const statusMatch = statusFilter === STATUS_FILTERS.ALL || task.tasks.status.toLowerCase() === statusFilter;
 
-                case DATE_FILTERS.UPCOMING:
-                    return isAfter(dueDate, today);
-
-                default:
-                    return true;
-            }
+            return dateMatch && statusMatch;
         });
 
         setFilteredTasks(filtered);
@@ -180,6 +191,16 @@ const AssignedTasks = () => {
                     <Picker.Item label="Today's Tasks" value={DATE_FILTERS.TODAY} />
                     <Picker.Item label="Last 5 Days" value={DATE_FILTERS.LAST_5_DAYS} />
                     <Picker.Item label="Upcoming Tasks" value={DATE_FILTERS.UPCOMING} />
+                </Picker>
+                <Picker
+                    selectedValue={statusFilter}
+                    onValueChange={(value) => setStatusFilter(value)}
+                    style={styles.picker}
+                >
+                    <Picker.Item label="All Status" value={STATUS_FILTERS.ALL} />
+                    <Picker.Item label="Completed" value={STATUS_FILTERS.COMPLETED} />
+                    <Picker.Item label="In Progress" value={STATUS_FILTERS.IN_PROGRESS} />
+                    <Picker.Item label="Pending" value={STATUS_FILTERS.PENDING} />
                 </Picker>
             </View>
 

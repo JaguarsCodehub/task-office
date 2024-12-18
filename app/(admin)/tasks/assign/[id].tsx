@@ -8,6 +8,7 @@ import { Picker } from '@react-native-picker/picker';
 import { useAuth } from '@/context/AuthContext';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { FontAwesome5 } from '@expo/vector-icons';
+import * as Notifications from 'expo-notifications';
 
 export default function AssignTaskScreen() {
     const { id } = useLocalSearchParams();
@@ -29,6 +30,14 @@ export default function AssignTaskScreen() {
 
     useEffect(() => {
         fetchData();
+        const subscription = Notifications.addNotificationResponseReceivedListener(response => {
+            const { taskId } = response.notification.request.content.data;
+            if (taskId) {
+                router.push(`/(tabs)`);
+            }
+        });
+
+        return () => subscription.remove();
     }, [id]);
 
     const fetchData = async () => {
@@ -60,8 +69,8 @@ export default function AssignTaskScreen() {
 
     const handleAssign = async () => {
         try {
-            if (!selectedUserId) {
-                Alert.alert('Error', 'Please select a user to assign');
+            if (!selectedUserId || !selectedProjectId || !selectedClientId) {
+                Alert.alert('Error', 'Please fill all the fields');
                 return;
             }
 

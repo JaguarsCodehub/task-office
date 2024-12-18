@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, TouchableOpacity, ScrollView, Modal, TextInput, Text, View, RefreshControl } from 'react-native';
+import { StyleSheet, TouchableOpacity, ScrollView, Modal, TextInput, Text, View, RefreshControl, Alert } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import { router, Stack } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
@@ -25,7 +25,7 @@ interface TaskAssignment {
     description: string;
     priority: string;
     status: string;
-    due_date: string;
+
     narration?: string;
   };
   assigned_by_user: {
@@ -33,6 +33,7 @@ interface TaskAssignment {
     full_name: string;
   };
   hours_taken?: number;
+  due_date: string;
 }
 
 interface DashboardStats {
@@ -104,7 +105,8 @@ export default function UserDashboard() {
                         id,
                         full_name
                     ),
-                    narration
+                    narration,
+                    due_date
                 `)
         .eq('assigned_to', user?.id)
         .order('assigned_at', { ascending: false });
@@ -141,8 +143,11 @@ export default function UserDashboard() {
   };
 
   const handleTaskUpdate = async () => {
+    if (!hoursInput) {
+      Alert.alert("Add Hours First", "You need to first add the hours")
+    }
     try {
-      // Start a Supabase transaction by making multiple updates
+
       const updates = [];
 
       // Update narration in task_assignments table
@@ -216,9 +221,9 @@ export default function UserDashboard() {
       <Text style={styles.assignedBy}>
         Assigned by {assignment.assigned_by_user?.full_name || 'Unknown'}
       </Text>
-      {assignment.task.due_date && (
+      {assignment.due_date && (
         <Text style={styles.dueDate}>
-          Due {new Date(assignment.task.due_date).toLocaleDateString()}
+          Due {new Date(assignment.due_date).toLocaleDateString()}
         </Text>
       )}
       <View style={[styles.statusBadge, { backgroundColor: getStatusColor(assignment.task.status) }]}>

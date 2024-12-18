@@ -12,18 +12,21 @@ export default function UserProfileScreen() {
     const { user } = useAuth();
     const [fullName, setFullName] = useState(user?.full_name || '');
     const [username, setUsername] = useState(user?.username || '');
-    const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || '');
+    const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url);
     const [newUsername, setNewUsername] = useState('');
     const [newFullName, setNewFullName] = useState('');
 
     const handleUpdateProfile = async () => {
         try {
-            const { error } = await supabase
+            if (username.trim() === '' || fullName.trim() === '') {
+                Alert.alert("Error", "Please fill all the fields");
+                return;
+            }
+
+            const { data, error } = await supabase
                 .from('users')
                 .update({ full_name: fullName, username, avatar_url: avatarUrl })
                 .eq('id', user?.id);
-
-            if (error) throw error;
 
             Alert.alert('Success', 'Profile updated successfully');
         } catch (error) {
