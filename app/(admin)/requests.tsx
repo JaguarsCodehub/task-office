@@ -51,7 +51,6 @@ const Requests = () => {
                     assigned_to_user:users!user_requests_assigned_to_fkey(full_name),
                     user:users!user_requests_user_id_fkey(full_name)
                 `)
-                .eq('assigned_to', user?.id)
                 .order('created_at', { ascending: false });
 
             if (error) throw error;

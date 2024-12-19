@@ -33,6 +33,21 @@ export default function ProjectsScreen() {
         }
     };
 
+    const deleteProject = async (projectId: string) => {
+        try {
+            const { error } = await supabase
+                .from('projects') // Assuming you have a 'projects' table
+                .delete()
+                .eq('id', projectId);
+
+            if (error) throw error;
+            // Handle successful deletion (e.g., update state or show a message)
+        } catch (error) {
+            console.error('Error deleting project:', error);
+            Alert.alert('Error', 'Failed to delete project');
+        }
+    };
+
     const ProjectCard = ({ project }: { project: Project }) => (
         <TouchableOpacity
             style={styles.projectCard}
@@ -42,7 +57,18 @@ export default function ProjectsScreen() {
                 <Text style={styles.projectTitle}>{project.name}</Text>
                 <Text style={styles.projectDescription}>{project.description}</Text>
             </View>
-
+            <TouchableOpacity onPress={() => {
+                Alert.alert(
+                    'Delete Client',
+                    'Are you sure you want to delete this client?',
+                    [
+                        { text: 'Cancel', style: 'cancel' },
+                        { text: 'Delete', onPress: () => deleteProject(project.id) },
+                    ]
+                );
+            }}>
+                <Text style={styles.deleteButton}>Delete</Text>
+            </TouchableOpacity>
         </TouchableOpacity>
     );
 
@@ -173,5 +199,10 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 6,
         zIndex: 1,
+    },
+    deleteButton: {
+        color: 'red',
+        textAlign: 'right',
+        marginTop: 10,
     },
 });

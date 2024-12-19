@@ -13,7 +13,7 @@ export default function NewClient() {
 
     const handleSave = async () => {
         try {
-            if (!client.name) {
+            if (!client.name || !client.description) {
                 Alert.alert('Error', 'Please fill in all required fields');
                 return;
             }

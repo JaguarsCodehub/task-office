@@ -70,6 +70,7 @@ export default function CreateTaskRequestScreen() {
             Alert.alert('Error', 'Failed to create task request');
         } finally {
             setIsLoading(false);
+            setFormData({ title: '', description: '', assigned_to: '' })
         }
     };
 

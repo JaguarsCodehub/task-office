@@ -40,12 +40,14 @@ export default function TaskDetailsScreen() {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSave = async () => {
+
+        if (!task.title || !task.description) {
+            Alert.alert('Error', 'Please fill in all the fields');
+            return;
+        }
         try {
             setIsLoading(true);
-            if (!task.title) {
-                Alert.alert('Error', 'Please fill in the title');
-                return;
-            }
+
 
             const taskData = {
                 ...task,
@@ -74,6 +76,7 @@ export default function TaskDetailsScreen() {
             Alert.alert('Error', 'Failed to save task');
         } finally {
             setIsLoading(false);
+
         }
     };
 

@@ -40,7 +40,7 @@ export default function NewProject() {
 
     const handleSave = async () => {
         try {
-            if (!project.name) {
+            if (!project.name || !project.description) {
                 Alert.alert('Error', 'Please fill in all required fields');
                 return;
             }

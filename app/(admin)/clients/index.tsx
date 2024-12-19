@@ -31,7 +31,21 @@ export default function ClientsScreen() {
         }
     };
 
+    const deleteClient = async (clientId: string) => {
+        try {
+            const { error } = await supabase
+                .from('clients')
+                .delete()
+                .eq('id', clientId);
 
+            if (error) throw error;
+            // Remove the client from the state after successful deletion
+            setClients(clients.filter(client => client.id !== clientId));
+        } catch (error) {
+            console.error('Error deleting client:', error);
+            Alert.alert('Error', 'Failed to delete client');
+        }
+    };
 
     const ClientCard = ({ client }: { client: Client }) => (
         <TouchableOpacity
@@ -42,6 +56,18 @@ export default function ClientsScreen() {
                 <Text style={styles.clientName}>{client.name}</Text>
                 <Text style={styles.clientDescription}>{client.description}</Text>
             </View>
+            <TouchableOpacity onPress={() => {
+                Alert.alert(
+                    'Delete Client',
+                    'Are you sure you want to delete this client?',
+                    [
+                        { text: 'Cancel', style: 'cancel' },
+                        { text: 'Delete', onPress: () => deleteClient(client.id) },
+                    ]
+                );
+            }}>
+                <Text style={styles.deleteButton}>Delete</Text>
+            </TouchableOpacity>
         </TouchableOpacity>
     );
 
@@ -128,5 +154,10 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 6,
         zIndex: 1,
+    },
+    deleteButton: {
+        color: 'red',
+        textAlign: 'right',
+        marginTop: 10,
     },
 });

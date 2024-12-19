@@ -91,9 +91,39 @@ export default function TasksScreen() {
                 <Text style={styles.dueDate}>
                     Created at: {new Date(task.created_at).toLocaleDateString()}
                 </Text>
+                <TouchableOpacity onPress={() => handleDeleteTask(task.id)}>
+                    <FontAwesome name="trash" size={24} color="red" />
+                </TouchableOpacity>
             </View>
         </TouchableOpacity>
     );
+
+    const handleDeleteTask = async (taskId: string) => {
+        Alert.alert(
+            'Delete Task',
+            'Are you sure you want to delete this task?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Delete', onPress: () => deleteTask(taskId) },
+            ]
+        );
+    };
+
+    const deleteTask = async (taskId: string) => {
+        try {
+            const { error } = await supabase
+                .from('tasks')
+                .delete()
+                .eq('id', taskId);
+
+            if (error) throw error;
+            // Update the tasks state to remove the deleted task
+            setTasks(tasks.filter(task => task.id !== taskId));
+        } catch (error) {
+            console.error('Error deleting task:', error);
+            Alert.alert('Error', 'Failed to delete task');
+        }
+    };
 
     const getStatusColor = (status: string) => {
         const colors = {
@@ -144,7 +174,7 @@ export default function TasksScreen() {
                                 onValueChange={setSelectedStatus}
                                 style={styles.picker}
                             >
-                                <Picker.Item label="All Statuses" value="" />
+                                <Picker.Item label="All Status" value="" />
                                 <Picker.Item label="PENDING" value="pending" />
                                 <Picker.Item label="IN_PROGRESS" value="in_progress" />
                                 <Picker.Item label="COMPLETED" value="completed" />
