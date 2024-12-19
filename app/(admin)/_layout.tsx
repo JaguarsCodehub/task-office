@@ -10,7 +10,7 @@ export default function AdminLayout() {
     useEffect(() => {
         if (!user || !isAdmin) {
             // Redirect non-admin users to login or home
-            router.replace('/');
+            router.replace('/(auth)/login');
         }
     }, [user, isAdmin]);
 
