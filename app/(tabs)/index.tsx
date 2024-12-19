@@ -55,7 +55,7 @@ const TASK_STATUSES: TaskStatus[] = [
 ];
 
 export default function UserDashboard() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [assignments, setAssignments] = useState<TaskAssignment[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
     total: 0,
@@ -75,6 +75,12 @@ export default function UserDashboard() {
 
   const [filteredTasks, setFilteredTasks] = useState<TaskAssignment[]>([]);
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
+
+  useEffect(() => {
+    if (isAdmin) {
+      router.push('/(admin)')
+    }
+  })
 
   useEffect(() => {
     fetchAssignedTasks();

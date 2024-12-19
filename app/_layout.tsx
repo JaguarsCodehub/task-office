@@ -1,7 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack, Redirect } from 'expo-router';
+import { Stack, Redirect, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
@@ -28,14 +28,25 @@ Notifications.setNotificationHandler({
 });
 
 function RootLayoutNav() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const colorScheme = useColorScheme();
+
+  useEffect(() => {
+    if (isAdmin) {
+      router.push('/(admin)')
+    }
+  })
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }}>
         {user ? (
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            {isAdmin ? (
+              <Stack.Screen name="(admin)" options={{ headerShown: false }} />
+            ) : null}
+          </>
         ) : (
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         )}

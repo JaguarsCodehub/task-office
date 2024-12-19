@@ -1,10 +1,11 @@
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 import { useEffect } from 'react';
-import { router } from 'expo-router';
+import { BackHandler } from 'react-native';
 
 export default function AdminLayout() {
     const { user, isAdmin } = useAuth();
+
 
     // Protect admin routes
     useEffect(() => {
@@ -14,18 +15,37 @@ export default function AdminLayout() {
         }
     }, [user, isAdmin]);
 
+    useEffect(() => {
+        const backAction = () => {
+            if (isAdmin) {
+                // If the user is an admin, navigate to the auth screen
+                router.push('/(auth)/login');
+                return true; // Prevent default back action
+            }
+            return false; // Allow default back action
+        };
+
+        const backHandler = BackHandler.addEventListener(
+            'hardwareBackPress',
+            backAction
+        );
+
+        return () => backHandler.remove(); // Cleanup the event listener
+    }, [isAdmin, router]);
+
     return (
         <Stack
             screenOptions={{
-                headerShown: false,
-                headerBackVisible: false, // Disable back button
-                gestureEnabled: false, // Disable swipe back gesture
+                headerShown: true,
+                headerTitle: "Admin Dashboard",
+                headerBackVisible: true, // Disable back button
+                gestureEnabled: true, // Disable swipe back gesture
             }}
         >
             <Stack.Screen
                 name="index"
                 options={{
-                    headerShown: false,
+                    headerShown: true,
                 }}
             />
             <Stack.Screen
