@@ -275,7 +275,6 @@ export default function UserDashboard() {
           <StatCard title="Pending" value={stats.pending} icon="file" color="gray" onPress={() => handleStatCardPress('pending')} />
           <StatCard title="In Progress" value={stats.inProgress} icon="spinner" color="#FF9500" onPress={() => handleStatCardPress('in_progress')} />
           <StatCard title="Completed" value={stats.completed} icon="check-circle" color="#34C759" onPress={() => handleStatCardPress('completed')} />
-
         </View>
 
         <View style={styles.section}>
@@ -354,30 +353,30 @@ export default function UserDashboard() {
         transparent={true}
         onRequestClose={() => setIsFilterModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Filtered Tasks</Text>
-            {filteredTasks.length === 0 ? (
-              <Text style={styles.emptyText}>No tasks found for this status</Text>
-            ) : (
-              filteredTasks.map((task) => (
-                <ScrollView showsVerticalScrollIndicator >
+        <ScrollView>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Filtered Tasks</Text>
+              {filteredTasks.length === 0 ? (
+                <Text style={styles.emptyText}>No tasks found for this status</Text>
+              ) : (
+                filteredTasks.map((task) => (
                   <View key={task.id} style={{ padding: 10, marginBottom: 5, marginHorizontal: 8, borderRadius: 10, backgroundColor: "#e2e2e2" }}>
                     <Text style={{ fontWeight: "600" }} key={task.id}>Title: {task.task.title}</Text>
                     <Text>{task.task.description}</Text>
                     <Text>Priority: {task.task.priority}</Text>
                   </View>
-                </ScrollView>
-              ))
-            )}
-            <TouchableOpacity
-              style={[styles.modalButton, styles.cancelButton]}
-              onPress={() => setIsFilterModalVisible(false)}
-            >
-              <Text style={styles.modalButtonText}>Close</Text>
-            </TouchableOpacity>
+                ))
+              )}
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setIsFilterModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        </ScrollView>
       </Modal>
     </>
   );
@@ -431,12 +430,14 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    padding: 8,
+    padding: 6,
     backgroundColor: '#fff',
     borderRadius: 8,
-    marginHorizontal: 4,
+    marginHorizontal: 2,
     borderLeftWidth: 4,
     shadowColor: '#000',
+    borderWidth: 1,
+    borderColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
