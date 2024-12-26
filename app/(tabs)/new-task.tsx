@@ -60,6 +60,35 @@ export default function CreateTaskRequestScreen() {
                     created_at: new Date().toISOString(),
                 });
 
+            // Get user's push token
+            const { data: userData, error: userError } = await supabase
+                .from('users')
+                .select('push_token')
+                .eq('id', formData.assigned_to)
+                .single();
+
+            console.log('User push token:', userData?.push_token);
+
+            if (userData?.push_token) {
+                // Use Expo's push notification service directly
+                const response = await fetch('https://exp.host/--/api/v2/push/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        to: userData.push_token,
+                        title: 'You have a new Request to Fullfill',
+                        body: `${user?.full_name} has requested you to do ${formData.title}`,
+                        data: { taskId: formData.title },
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to send notification');
+                }
+            }
+
             if (error) throw error;
 
             Alert.alert('Success', 'Task request created successfully', [
