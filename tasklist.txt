@@ -1,2 +1,3 @@
-- User to Admin Notification enable --- Done
 - Excel Export Users Data -- Excel Remaining
+--- Only Task Title should be shown in Tasks Table and Screen
+--- All other should be shown in Task Assignment
