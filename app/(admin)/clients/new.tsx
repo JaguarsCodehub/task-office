@@ -41,8 +41,7 @@ export default function NewClient() {
                     onChangeText={(text) => setClient({ ...client, name: text })}
                     placeholder="Client Name"
                 />
-
-                <Text style={styles.label}>Description</Text>
+                <Text style={styles.label}>Others</Text>
                 <TextInput
                     style={styles.input}
                     value={client.description}

@@ -155,7 +155,7 @@ export default function TasksScreen() {
 
             <ScrollView style={styles.content}>
                 <View style={styles.header}>
-                    <Text style={styles.title}>Tasks</Text>
+                    <Text style={styles.title}>Assign Tasks</Text>
                     <Text style={styles.subtitle}>{tasks.length} total tasks</Text>
                 </View>
 
